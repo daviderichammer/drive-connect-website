@@ -17,9 +17,6 @@ export async function GET(
       where: { id: parseInt(id), hostId: host.id },
       include: {
         vehicle: true,
-        messages: {
-          orderBy: { createdAt: "asc" },
-        },
       },
     });
 
