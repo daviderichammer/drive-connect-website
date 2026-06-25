@@ -71,6 +71,7 @@ model HostAccount {
   application           PartnerApplication @relation(fields: [applicationId], references: [id])
   vehicles              Vehicle[]
   sessions              HostSession[]
+  bookings              Booking[]
 
   @@map("host_accounts")
 }
@@ -118,11 +119,52 @@ model Vehicle {
   pickupInstructions   String?  @db.Text
   status               String   @default("active") @db.VarChar(50)
   photos               String?  @db.Text
+  category             String   @default("Sedan") @db.VarChar(50)
+  city                 String?  @db.VarChar(255)
+  zipCode              String?  @db.VarChar(20)
+  rating               Decimal  @default(0.0) @db.Decimal(3, 1)
+  trips                Int      @default(0)
+  unlimitedMiles       Boolean  @default(false)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   host                 HostAccount @relation(fields: [hostId], references: [id])
+  bookings             Booking[]
 
   @@map("vehicles")
+}
+
+model Booking {
+  id                   Int      @id @default(autoincrement())
+  bookingReference     String   @unique @db.VarChar(50)
+  vehicleId            Int
+  hostId               Int
+  renterFirstName      String   @db.VarChar(100)
+  renterLastName       String   @db.VarChar(100)
+  renterEmail          String   @db.VarChar(255)
+  renterPhone          String   @db.VarChar(50)
+  renterLicenseNumber  String   @db.VarChar(100)
+  renterLicenseState   String   @db.VarChar(50)
+  startDate            DateTime
+  endDate              DateTime
+  pickupTime           String   @db.VarChar(20)
+  returnTime           String   @db.VarChar(20)
+  deliveryOption       String   @db.VarChar(50)
+  deliveryAddress      String?  @db.VarChar(255)
+  protectionPlan       String   @db.VarChar(50)
+  basePrice            Decimal  @db.Decimal(10, 2)
+  protectionPrice      Decimal  @db.Decimal(10, 2)
+  deliveryPrice        Decimal  @db.Decimal(10, 2)
+  taxes                Decimal  @db.Decimal(10, 2)
+  totalPrice           Decimal  @db.Decimal(10, 2)
+  status               String   @default("pending") @db.VarChar(50) // pending, confirmed, active, completed, cancelled
+  paymentStatus        String   @default("pending") @db.VarChar(50) // pending, paid, refunded
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  vehicle              Vehicle     @relation(fields: [vehicleId], references: [id])
+  host                 HostAccount @relation(fields: [hostId], references: [id])
+
+  @@map("bookings")
 }
 
 model ContactSubmission {
