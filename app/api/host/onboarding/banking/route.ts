@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getCurrentHost } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const session = await getSession();
-  if (!session) {
+  const host = await getCurrentHost();
+  if (!host) {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
@@ -16,43 +16,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All banking fields are required." }, { status: 400 });
     }
 
-    // Store only masked/reference data — no real payment processor integration yet
     const maskedAccount = accountNumber.slice(-4).padStart(accountNumber.length, "*");
-    const bankingInfo = JSON.stringify({
-      accountHolderName,
-      bankName,
-      accountType,
-      routingNumber: routingNumber.slice(-4).padStart(routingNumber.length, "*"),
-      accountNumberMasked: maskedAccount,
-      submittedAt: new Date().toISOString(),
-    });
+    const maskedRouting = routingNumber.slice(-4).padStart(routingNumber.length, "*");
 
-    const existing = await prisma.businessProfile.findUnique({
-      where: { hostId: session.host.id },
-    });
-
-    if (existing) {
-      await prisma.businessProfile.update({
-        where: { hostId: session.host.id },
-        data: { bankingInfo, bankingComplete: true },
-      });
-    } else {
-      await prisma.businessProfile.create({
-        data: {
-          hostId: session.host.id,
-          businessName: session.host.name,
-          bankingInfo,
-          bankingComplete: true,
-        },
-      });
-    }
-
-    // Mark onboarding as complete
     await prisma.hostAccount.update({
-      where: { id: session.host.id },
+      where: { id: host.id },
       data: {
-        onboardingStep: 5,
-        onboardingComplete: true,
+        bankAccountName: accountHolderName,
+        bankAccountNumber: maskedAccount,
+        bankRoutingNumber: maskedRouting,
+        bankAccountType: accountType,
+        bankingInfoCompleted: true,
+        onboardingStep: Math.max(host.onboardingStep, 5),
+        onboardingCompleted: true,
       },
     });
 

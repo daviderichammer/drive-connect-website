@@ -3,194 +3,236 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: false,
+  secure: process.env.SMTP_SECURE === "true",
   auth: {
-    user: process.env.SMTP_USER || process.env.EMAIL_FROM,
-    pass: process.env.SMTP_PASS,
+    user: process.env.SMTP_USER || "",
+    pass: process.env.SMTP_PASS || "",
   },
 });
 
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@driveconnect.com";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://5.161.189.93";
+
 export async function sendApprovalEmail(
-  to: string,
-  name: string,
+  toEmail: string,
+  ownerName: string,
   businessName: string,
-  registrationLink: string
+  approvalToken: string
 ) {
+  const registrationUrl = `${BASE_URL}/host/register?token=${approvalToken}`;
+
   const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <style>
-    body { font-family: Inter, Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
-    .header { background: #000000; padding: 32px 40px; text-align: center; }
-    .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px; }
-    .header p { color: #DC2626; margin: 8px 0 0; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
-    .body { padding: 40px; }
-    .body h2 { color: #000000; font-size: 22px; margin: 0 0 16px; }
-    .body p { color: #333333; font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
-    .cta { display: block; background: #DC2626; color: #ffffff; text-decoration: none; text-align: center; padding: 16px 32px; border-radius: 6px; font-weight: 700; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; margin: 32px 0; }
-    .footer { background: #000000; padding: 24px 40px; text-align: center; }
-    .footer p { color: #555555; font-size: 12px; margin: 0; }
-    .footer span { color: #DC2626; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drive Connect — Application Approved</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>DRIVE CONNECT</h1>
-      <p>Drive Network Partner Program</p>
-    </div>
-    <div class="body">
-      <h2>Congratulations, ${name}!</h2>
-      <p>Your application for <strong>${businessName}</strong> has been approved. Welcome to the Drive Network.</p>
-      <p>You are now part of a trusted operator network built for independent rental businesses. You own the cars — you should control the business.</p>
-      <p>To get started, complete your account setup and create your first vehicle listing:</p>
-      <a href="${registrationLink}" class="cta">Complete Your Account Setup</a>
-      <p style="font-size: 13px; color: #888888;">This link expires in 72 hours. If you did not apply to Drive Connect, please disregard this email.</p>
-    </div>
-    <div class="footer">
-      <p>DRIVE CONNECT IS PRINCIPLED</p>
-      <p><span>Fairness</span> * <span>Integrity</span> * <span>Trust</span> * <span>Independence</span> * <span>Accountability</span> * <span>Shared Success</span></p>
-    </div>
-  </div>
+<body style="margin:0;padding:0;background-color:#000000;font-family:Inter,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#111111;border-radius:8px;overflow:hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#000000;padding:32px 40px;border-bottom:2px solid #C1121F;">
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;">
+                DRIVE CONNECT
+              </h1>
+              <p style="margin:4px 0 0;color:#888888;font-size:12px;letter-spacing:0.05em;text-transform:uppercase;">
+                Drive Network Partner Program
+              </p>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px;">
+              <h2 style="margin:0 0 16px;color:#C1121F;font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">
+                Application Approved
+              </h2>
+              <p style="margin:0 0 16px;color:#ffffff;font-size:16px;line-height:1.6;">
+                Dear ${ownerName},
+              </p>
+              <p style="margin:0 0 24px;color:#cccccc;font-size:15px;line-height:1.7;">
+                Congratulations. Your application for <strong style="color:#ffffff;">${businessName}</strong> has been approved. 
+                You are now a Drive Network Partner.
+              </p>
+              <p style="margin:0 0 32px;color:#cccccc;font-size:15px;line-height:1.7;">
+                Click the button below to set up your account and complete your onboarding. 
+                This link is unique to your application and expires in 48 hours.
+              </p>
+              <!-- CTA Button -->
+              <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                <tr>
+                  <td style="background-color:#C1121F;border-radius:6px;">
+                    <a href="${registrationUrl}" 
+                       style="display:block;padding:16px 32px;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;">
+                      Complete Your Registration →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0 0 8px;color:#555555;font-size:13px;">
+                If the button doesn't work, copy and paste this link:
+              </p>
+              <p style="margin:0 0 32px;color:#888888;font-size:12px;word-break:break-all;">
+                ${registrationUrl}
+              </p>
+              <hr style="border:none;border-top:1px solid #222222;margin:0 0 24px;">
+              <p style="margin:0;color:#555555;font-size:13px;font-style:italic;text-align:center;">
+                "Platforms should create trust. Not control."
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color:#000000;padding:24px 40px;border-top:1px solid #1a1a1a;">
+              <p style="margin:0;color:#333333;font-size:11px;text-align:center;letter-spacing:0.05em;text-transform:uppercase;">
+                Drive Connect IS Principled — Fairness · Integrity · Trust · Independence
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
-  const mailOptions = {
-    from: `"Drive Connect" <${process.env.EMAIL_FROM || "noreply@driveconnect.com"}>`,
-    to,
+  await transporter.sendMail({
+    from: `"Drive Connect" <${FROM_EMAIL}>`,
+    to: toEmail,
     subject: "Your Drive Network Partner Application Has Been Approved",
     html,
-    text: `Congratulations ${name}! Your application for ${businessName} has been approved. Complete your account setup at: ${registrationLink}`,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error("Email send error:", error);
-    return { success: false, error };
-  }
+  });
 }
 
 export async function sendRejectionEmail(
-  to: string,
-  name: string,
-  businessName: string,
-  notes?: string
+  toEmail: string,
+  ownerName: string,
+  businessName: string
 ) {
   const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <style>
-    body { font-family: Inter, Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
-    .header { background: #000000; padding: 32px 40px; text-align: center; }
-    .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px; }
-    .body { padding: 40px; }
-    .body h2 { color: #000000; font-size: 22px; margin: 0 0 16px; }
-    .body p { color: #333333; font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
-    .footer { background: #000000; padding: 24px 40px; text-align: center; }
-    .footer p { color: #555555; font-size: 12px; margin: 0; }
-  </style>
+  <title>Drive Connect — Application Update</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>DRIVE CONNECT</h1>
-    </div>
-    <div class="body">
-      <h2>Application Update — ${name}</h2>
-      <p>Thank you for your interest in the Drive Network Partner Program for <strong>${businessName}</strong>.</p>
-      <p>After reviewing your application, we are unable to move forward at this time.</p>
-      ${notes ? `<p><strong>Notes from our team:</strong> ${notes}</p>` : ""}
-      <p>We appreciate your interest in Drive Connect and encourage you to reapply in the future as your business grows.</p>
-    </div>
-    <div class="footer">
-      <p>Drive Connect — Built For Operators. Designed For Travelers.</p>
-    </div>
-  </div>
+<body style="margin:0;padding:0;background-color:#000000;font-family:Inter,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#111111;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="background-color:#000000;padding:32px 40px;border-bottom:2px solid #333333;">
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;">DRIVE CONNECT</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px;">
+              <p style="margin:0 0 16px;color:#ffffff;font-size:16px;">Dear ${ownerName},</p>
+              <p style="margin:0 0 24px;color:#cccccc;font-size:15px;line-height:1.7;">
+                Thank you for your interest in the Drive Network Partner Program. After reviewing your application for 
+                <strong style="color:#ffffff;">${businessName}</strong>, we are unable to approve your application at this time.
+              </p>
+              <p style="margin:0 0 24px;color:#cccccc;font-size:15px;line-height:1.7;">
+                We encourage you to reapply in the future as our network grows and requirements evolve.
+              </p>
+              <hr style="border:none;border-top:1px solid #222222;margin:0 0 24px;">
+              <p style="margin:0;color:#555555;font-size:13px;font-style:italic;text-align:center;">
+                "Platforms should create trust. Not control."
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#000000;padding:24px 40px;border-top:1px solid #1a1a1a;">
+              <p style="margin:0;color:#333333;font-size:11px;text-align:center;letter-spacing:0.05em;text-transform:uppercase;">
+                Drive Connect IS Principled
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
-  const mailOptions = {
-    from: `"Drive Connect" <${process.env.EMAIL_FROM || "noreply@driveconnect.com"}>`,
-    to,
-    subject: "Drive Network Partner Application — Status Update",
+  await transporter.sendMail({
+    from: `"Drive Connect" <${FROM_EMAIL}>`,
+    to: toEmail,
+    subject: "Update on Your Drive Network Partner Application",
     html,
-    text: `Thank you for your interest in Drive Connect. After reviewing your application for ${businessName}, we are unable to move forward at this time.`,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error("Email send error:", error);
-    return { success: false, error };
-  }
+  });
 }
 
 export async function sendPasswordResetEmail(
-  to: string,
-  name: string,
-  resetLink: string
+  toEmail: string,
+  ownerName: string,
+  resetToken: string
 ) {
+  const resetUrl = `${BASE_URL}/host/reset-password?token=${resetToken}`;
+
   const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <style>
-    body { font-family: Inter, Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
-    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
-    .header { background: #000000; padding: 32px 40px; text-align: center; }
-    .header h1 { color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px; }
-    .body { padding: 40px; }
-    .body h2 { color: #000000; font-size: 22px; margin: 0 0 16px; }
-    .body p { color: #333333; font-size: 15px; line-height: 1.6; margin: 0 0 16px; }
-    .cta { display: block; background: #DC2626; color: #ffffff; text-decoration: none; text-align: center; padding: 16px 32px; border-radius: 6px; font-weight: 700; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; margin: 32px 0; }
-    .footer { background: #000000; padding: 24px 40px; text-align: center; }
-    .footer p { color: #555555; font-size: 12px; margin: 0; }
-  </style>
+  <title>Drive Connect — Password Reset</title>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>DRIVE CONNECT</h1>
-    </div>
-    <div class="body">
-      <h2>Password Reset Request</h2>
-      <p>Hi ${name}, we received a request to reset your Drive Network Partner account password.</p>
-      <a href="${resetLink}" class="cta">Reset My Password</a>
-      <p style="font-size: 13px; color: #888888;">This link expires in 1 hour. If you did not request a password reset, please ignore this email.</p>
-    </div>
-    <div class="footer">
-      <p>Drive Connect — Platforms should create trust. Not control.</p>
-    </div>
-  </div>
+<body style="margin:0;padding:0;background-color:#000000;font-family:Inter,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#111111;border-radius:8px;overflow:hidden;">
+          <tr>
+            <td style="background-color:#000000;padding:32px 40px;border-bottom:2px solid #C1121F;">
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;">DRIVE CONNECT</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:40px;">
+              <h2 style="margin:0 0 16px;color:#ffffff;font-size:18px;font-weight:700;">Password Reset Request</h2>
+              <p style="margin:0 0 16px;color:#ffffff;font-size:16px;">Dear ${ownerName},</p>
+              <p style="margin:0 0 24px;color:#cccccc;font-size:15px;line-height:1.7;">
+                We received a request to reset your password. Click the button below to set a new password. 
+                This link expires in 1 hour.
+              </p>
+              <table cellpadding="0" cellspacing="0" style="margin:0 0 32px;">
+                <tr>
+                  <td style="background-color:#C1121F;border-radius:6px;">
+                    <a href="${resetUrl}" style="display:block;padding:16px 32px;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;">
+                      Reset Password →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:0;color:#555555;font-size:13px;">
+                If you did not request a password reset, please ignore this email.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#000000;padding:24px 40px;border-top:1px solid #1a1a1a;">
+              <p style="margin:0;color:#333333;font-size:11px;text-align:center;letter-spacing:0.05em;text-transform:uppercase;">Drive Connect IS Principled</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `;
 
-  const mailOptions = {
-    from: `"Drive Connect" <${process.env.EMAIL_FROM || "noreply@driveconnect.com"}>`,
-    to,
+  await transporter.sendMail({
+    from: `"Drive Connect" <${FROM_EMAIL}>`,
+    to: toEmail,
     subject: "Drive Connect — Password Reset Request",
     html,
-    text: `Hi ${name}, reset your password at: ${resetLink}`,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    return { success: true };
-  } catch (error) {
-    console.error("Email send error:", error);
-    return { success: false, error };
-  }
+  });
 }

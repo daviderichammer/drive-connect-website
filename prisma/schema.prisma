@@ -27,16 +27,102 @@ model PartnerApplication {
   operates24x7            Boolean  @default(false)
   wouldUseDCSupport       Boolean  @default(false)
   status                  String   @default("pending") @db.VarChar(50)
-  reviewedBy              String?  @db.VarChar(255)
+  adminNotes              String?  @db.Text
   reviewedAt              DateTime?
-  reviewNotes             String?  @db.Text
+  reviewedBy              String?  @db.VarChar(255)
   approvalToken           String?  @db.VarChar(255)
-  approvalTokenExpiry     DateTime?
+  approvalTokenUsed       Boolean  @default(false)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
   hostAccount             HostAccount?
 
   @@map("partner_applications")
+}
+
+model HostAccount {
+  id                    Int      @id @default(autoincrement())
+  applicationId         Int      @unique
+  email                 String   @db.VarChar(255) @unique
+  passwordHash          String   @db.VarChar(255)
+  businessName          String   @db.VarChar(255)
+  ownerName             String   @db.VarChar(255)
+  phone                 String?  @db.VarChar(50)
+  logoUrl               String?  @db.VarChar(500)
+  description           String?  @db.Text
+  serviceAreas          String?  @db.Text
+  profileCompleted      Boolean  @default(false)
+  onboardingStep        Int      @default(0)
+  onboardingCompleted   Boolean  @default(false)
+  insuranceDocUrl       String?  @db.VarChar(500)
+  insuranceDocName      String?  @db.VarChar(255)
+  insuranceVerified     Boolean  @default(false)
+  bankAccountName       String?  @db.VarChar(255)
+  bankAccountNumber     String?  @db.VarChar(255)
+  bankRoutingNumber     String?  @db.VarChar(50)
+  bankAccountType       String?  @db.VarChar(50)
+  payoutEmail           String?  @db.VarChar(255)
+  bankingInfoCompleted  Boolean  @default(false)
+  resetToken            String?  @db.VarChar(255)
+  resetTokenExpiry      DateTime?
+  isActive              Boolean  @default(true)
+  lastLoginAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  application           PartnerApplication @relation(fields: [applicationId], references: [id])
+  vehicles              Vehicle[]
+  sessions              HostSession[]
+
+  @@map("host_accounts")
+}
+
+model HostSession {
+  id           Int      @id @default(autoincrement())
+  hostId       Int
+  sessionToken String   @db.VarChar(255) @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  host         HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@map("host_sessions")
+}
+
+model Vehicle {
+  id                   Int      @id @default(autoincrement())
+  hostId               Int
+  year                 Int
+  make                 String   @db.VarChar(100)
+  model                String   @db.VarChar(100)
+  trim                 String?  @db.VarChar(100)
+  color                String?  @db.VarChar(50)
+  licensePlate         String?  @db.VarChar(50)
+  vin                  String?  @db.VarChar(50)
+  mileage              Int?
+  seats                Int      @default(5)
+  fuelType             String   @default("Gasoline") @db.VarChar(50)
+  transmission         String   @default("Automatic") @db.VarChar(50)
+  dailyRate            Decimal  @db.Decimal(10, 2)
+  weeklyRate           Decimal? @db.Decimal(10, 2)
+  monthlyRate          Decimal? @db.Decimal(10, 2)
+  securityDeposit      Decimal? @db.Decimal(10, 2)
+  mileageIncluded      Int?
+  hasGPS               Boolean  @default(false)
+  hasBluetooth         Boolean  @default(false)
+  hasCarPlay           Boolean  @default(false)
+  hasChargingCable     Boolean  @default(false)
+  hasChildSeat         Boolean  @default(false)
+  offersAirportPickup  Boolean  @default(false)
+  offersHomeDelivery   Boolean  @default(false)
+  deliveryFee          Decimal? @db.Decimal(10, 2)
+  description          String?  @db.Text
+  vehicleRules         String?  @db.Text
+  pickupInstructions   String?  @db.Text
+  status               String   @default("active") @db.VarChar(50)
+  photos               String?  @db.Text
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  host                 HostAccount @relation(fields: [hostId], references: [id])
+
+  @@map("vehicles")
 }
 
 model ContactSubmission {
@@ -50,99 +136,12 @@ model ContactSubmission {
   @@map("contact_submissions")
 }
 
-model HostAccount {
-  id                    Int      @id @default(autoincrement())
-  email                 String   @unique @db.VarChar(255)
-  passwordHash          String   @db.VarChar(255)
-  name                  String   @db.VarChar(255)
-  applicationId         Int      @unique
-  application           PartnerApplication @relation(fields: [applicationId], references: [id])
-  isActive              Boolean  @default(true)
-  onboardingComplete    Boolean  @default(false)
-  onboardingStep        Int      @default(0)
-  passwordResetToken    String?  @db.VarChar(255)
-  passwordResetExpiry   DateTime?
-  lastLoginAt           DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  businessProfile       BusinessProfile?
-  vehicles              Vehicle[]
-  sessions              HostSession[]
-
-  @@map("host_accounts")
-}
-
-model HostSession {
-  id           Int      @id @default(autoincrement())
-  sessionToken String   @unique @db.VarChar(255)
-  hostId       Int
-  host         HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-
-  @@map("host_sessions")
-}
-
-model BusinessProfile {
-  id              Int      @id @default(autoincrement())
-  hostId          Int      @unique
-  host            HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  businessName    String   @db.VarChar(255)
-  description     String?  @db.Text
-  logoUrl         String?  @db.VarChar(500)
-  serviceAreas    String?  @db.Text
-  phone           String?  @db.VarChar(50)
-  website         String?  @db.VarChar(255)
-  insuranceDoc    String?  @db.VarChar(500)
-  insuranceExpiry DateTime?
-  bankingComplete Boolean  @default(false)
-  bankingInfo     String?  @db.Text
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@map("business_profiles")
-}
-
-model Vehicle {
-  id                    Int      @id @default(autoincrement())
-  hostId                Int
-  host                  HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  year                  Int
-  make                  String   @db.VarChar(100)
-  model                 String   @db.VarChar(100)
-  trim                  String?  @db.VarChar(100)
-  color                 String?  @db.VarChar(50)
-  licensePlate          String?  @db.VarChar(50)
-  vin                   String?  @db.VarChar(50)
-  mileage               Int?
-  fuelType              String?  @db.VarChar(50)
-  transmission          String?  @db.VarChar(50)
-  seats                 Int?
-  dailyRate             Float
-  weeklyRate            Float?
-  monthlyRate           Float?
-  securityDeposit       Float?
-  mileageIncluded       Int?
-  description           String?  @db.Text
-  features              String?  @db.Text
-  photos                String?  @db.Text
-  offersAirportDelivery Boolean  @default(false)
-  offersHomeDelivery    Boolean  @default(false)
-  smokingAllowed        Boolean  @default(false)
-  petsAllowed           Boolean  @default(false)
-  status                String   @default("active") @db.VarChar(50)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@map("vehicles")
-}
-
 model AdminUser {
   id           Int      @id @default(autoincrement())
-  email        String   @unique @db.VarChar(255)
+  email        String   @db.VarChar(255) @unique
   passwordHash String   @db.VarChar(255)
   name         String   @db.VarChar(255)
-  role         String   @default("admin") @db.VarChar(50)
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

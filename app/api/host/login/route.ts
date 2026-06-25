@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createSession, SESSION_COOKIE_NAME, SESSION_DURATION_DAYS } from "@/lib/auth";
+import { createHostSession, SESSION_COOKIE, SESSION_DURATION_DAYS } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -11,16 +11,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
     }
 
-    const host = await prisma.hostAccount.findUnique({
-      where: { email: email.toLowerCase().trim() },
-    });
+    const host = await prisma.hostAccount.findUnique({ where: { email: email.toLowerCase() } });
 
     if (!host || !host.isActive) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
-    const passwordMatch = await bcrypt.compare(password, host.passwordHash);
-    if (!passwordMatch) {
+    const valid = await bcrypt.compare(password, host.passwordHash);
+    if (!valid) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
     }
 
@@ -30,33 +28,34 @@ export async function POST(req: NextRequest) {
       data: { lastLoginAt: new Date() },
     });
 
-    const sessionToken = await createSession(host.id);
+    const token = await createHostSession(host.id);
 
     const response = NextResponse.json({
       success: true,
       host: {
         id: host.id,
         email: host.email,
-        name: host.name,
-        onboardingComplete: host.onboardingComplete,
+        businessName: host.businessName,
+        ownerName: host.ownerName,
+        onboardingCompleted: host.onboardingCompleted,
         onboardingStep: host.onboardingStep,
       },
     });
 
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + SESSION_DURATION_DAYS);
+    const expires = new Date();
+    expires.setDate(expires.getDate() + SESSION_DURATION_DAYS);
 
-    response.cookies.set(SESSION_COOKIE_NAME, sessionToken, {
+    response.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      expires: expiresAt,
+      expires,
       path: "/",
     });
 
     return response;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Host login error:", error);
     return NextResponse.json({ error: "Login failed. Please try again." }, { status: 500 });
   }
 }

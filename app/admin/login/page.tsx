@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -11,7 +10,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -31,36 +30,84 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/admin/dashboard");
+      router.push("/admin/applications");
     } catch {
-      setError("An error occurred. Please try again.");
+      setError("Network error. Please try again.");
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ width: "100%", maxWidth: "420px" }}>
-        <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-          <Link href="/" style={{ textDecoration: "none" }}>
-            <h1 style={{ color: "#ffffff", fontSize: "1.75rem", fontWeight: 900, letterSpacing: "0.15em", margin: 0 }}>DRIVE CONNECT</h1>
-          </Link>
-          <p style={{ color: "#DC2626", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", marginTop: "0.5rem" }}>Admin Portal</p>
+    <div style={{
+      minHeight: "100vh",
+      backgroundColor: "#000000",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "Inter, Arial, sans-serif",
+      padding: "20px",
+    }}>
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        {/* Logo */}
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
+          <h1 style={{
+            color: "#ffffff",
+            fontSize: "24px",
+            fontWeight: 900,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            margin: "0 0 8px",
+          }}>
+            DRIVE CONNECT
+          </h1>
+          <p style={{ color: "#555555", fontSize: "12px", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
+            Admin Portal
+          </p>
         </div>
 
-        <div style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: "12px", padding: "2.5rem" }}>
-          <h2 style={{ color: "#ffffff", fontSize: "1.25rem", fontWeight: 700, marginBottom: "1.5rem", textAlign: "center" }}>Admin Login</h2>
+        {/* Login Card */}
+        <div style={{
+          backgroundColor: "#111111",
+          borderRadius: "8px",
+          padding: "40px",
+          border: "1px solid #1a1a1a",
+        }}>
+          <h2 style={{
+            color: "#ffffff",
+            fontSize: "18px",
+            fontWeight: 700,
+            marginBottom: "24px",
+            textAlign: "center",
+          }}>
+            Admin Login
+          </h2>
 
           {error && (
-            <div style={{ backgroundColor: "#1a0000", border: "1px solid #DC2626", borderRadius: "6px", padding: "0.75rem 1rem", marginBottom: "1.25rem" }}>
-              <p style={{ color: "#DC2626", fontSize: "0.875rem", margin: 0 }}>{error}</p>
+            <div style={{
+              backgroundColor: "rgba(193, 18, 31, 0.1)",
+              border: "1px solid #C1121F",
+              borderRadius: "6px",
+              padding: "12px",
+              marginBottom: "16px",
+              color: "#ff4444",
+              fontSize: "14px",
+            }}>
+              {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#888888", marginBottom: "0.375rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                Email Address
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{
+                display: "block",
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "#888888",
+                marginBottom: "6px",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+              }}>
+                Email
               </label>
               <input
                 type="email"
@@ -68,12 +115,30 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="admin@driveconnect.com"
-                style={{ width: "100%", padding: "0.875rem 1rem", border: "1px solid #333333", borderRadius: "6px", fontSize: "0.9375rem", backgroundColor: "#1a1a1a", color: "#ffffff", outline: "none", fontFamily: "Inter, sans-serif", boxSizing: "border-box" }}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  backgroundColor: "#1a1a1a",
+                  border: "1px solid #333333",
+                  borderRadius: "6px",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
               />
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#888888", marginBottom: "0.375rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{
+                display: "block",
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "#888888",
+                marginBottom: "6px",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+              }}>
                 Password
               </label>
               <input
@@ -82,22 +147,51 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="••••••••"
-                style={{ width: "100%", padding: "0.875rem 1rem", border: "1px solid #333333", borderRadius: "6px", fontSize: "0.9375rem", backgroundColor: "#1a1a1a", color: "#ffffff", outline: "none", fontFamily: "Inter, sans-serif", boxSizing: "border-box" }}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  backgroundColor: "#1a1a1a",
+                  border: "1px solid #333333",
+                  borderRadius: "6px",
+                  color: "#ffffff",
+                  fontSize: "14px",
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              style={{ width: "100%", backgroundColor: loading ? "#991b1b" : "#DC2626", color: "#ffffff", border: "none", borderRadius: "6px", padding: "1rem", fontWeight: 700, fontSize: "0.9375rem", letterSpacing: "0.1em", textTransform: "uppercase", cursor: loading ? "not-allowed" : "pointer", fontFamily: "Inter, sans-serif" }}
+              style={{
+                width: "100%",
+                backgroundColor: loading ? "#666666" : "#C1121F",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "6px",
+                padding: "14px",
+                fontWeight: 700,
+                fontSize: "13px",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontFamily: "Inter, Arial, sans-serif",
+              }}
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "Logging In..." : "Login"}
             </button>
           </form>
         </div>
 
-        <p style={{ textAlign: "center", color: "#333333", fontSize: "0.8125rem", marginTop: "1.5rem" }}>
-          <Link href="/" style={{ color: "#555555", textDecoration: "none" }}>← Back to Drive Connect</Link>
+        <p style={{
+          textAlign: "center",
+          color: "#333333",
+          fontSize: "11px",
+          marginTop: "24px",
+          fontStyle: "italic",
+        }}>
+          Drive Connect IS Principled
         </p>
       </div>
     </div>

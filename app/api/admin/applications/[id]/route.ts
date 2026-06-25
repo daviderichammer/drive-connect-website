@@ -1,112 +1,130 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAdminSession } from "@/lib/auth";
+import { getAdminFromSession, ADMIN_SESSION_COOKIE, generateToken } from "@/lib/auth";
 import { sendApprovalEmail, sendRejectionEmail } from "@/lib/email";
-import crypto from "crypto";
+import { cookies } from "next/headers";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminSession();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
-  const { id } = await params;
-  const application = await prisma.partnerApplication.findUnique({
-    where: { id: parseInt(id) },
-    include: {
-      hostAccount: {
-        select: { id: true, email: true, onboardingComplete: true, onboardingStep: true, createdAt: true },
-      },
-    },
-  });
-
-  if (!application) {
-    return NextResponse.json({ error: "Application not found." }, { status: 404 });
-  }
-
-  return NextResponse.json({ application });
+async function requireAdmin() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  if (!token) return null;
+  return getAdminFromSession(token);
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const admin = await getAdminSession();
-  if (!admin) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
-  }
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await requireAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
 
-  const { id } = await params;
-  const { action, notes } = await req.json();
-
-  if (!["approve", "reject"].includes(action)) {
-    return NextResponse.json({ error: "Invalid action." }, { status: 400 });
-  }
-
-  const application = await prisma.partnerApplication.findUnique({
-    where: { id: parseInt(id) },
-  });
-
-  if (!application) {
-    return NextResponse.json({ error: "Application not found." }, { status: 404 });
-  }
-
-  if (application.status !== "pending") {
-    return NextResponse.json({ error: "Application has already been reviewed." }, { status: 400 });
-  }
-
-  if (action === "approve") {
-    const approvalToken = crypto.randomBytes(32).toString("hex");
-    const approvalTokenExpiry = new Date();
-    approvalTokenExpiry.setHours(approvalTokenExpiry.getHours() + 72);
-
-    await prisma.partnerApplication.update({
+    const { id } = await params;
+    const application = await prisma.partnerApplication.findUnique({
       where: { id: parseInt(id) },
-      data: {
-        status: "approved",
-        reviewedBy: admin.email,
-        reviewedAt: new Date(),
-        reviewNotes: notes || null,
-        approvalToken,
-        approvalTokenExpiry,
+      include: {
+        hostAccount: {
+          select: {
+            id: true,
+            onboardingStep: true,
+            onboardingCompleted: true,
+            profileCompleted: true,
+            insuranceVerified: true,
+            bankingInfoCompleted: true,
+            lastLoginAt: true,
+            createdAt: true,
+          },
+        },
       },
     });
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://5.161.189.93";
-    const registrationLink = `${siteUrl}/host-login/register?token=${approvalToken}`;
+    if (!application) {
+      return NextResponse.json({ error: "Application not found." }, { status: 404 });
+    }
 
-    const emailResult = await sendApprovalEmail(
-      application.email,
-      application.ownerName,
-      application.businessName,
-      registrationLink
-    );
+    return NextResponse.json({ application });
+  } catch (error) {
+    console.error("Get application error:", error);
+    return NextResponse.json({ error: "Failed to fetch application." }, { status: 500 });
+  }
+}
 
-    return NextResponse.json({
-      success: true,
-      action: "approved",
-      registrationLink,
-      emailSent: emailResult.success,
-    });
-  } else {
-    await prisma.partnerApplication.update({
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await requireAdmin();
+    if (!admin) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const { action, adminNotes } = await req.json();
+
+    if (!["approve", "reject"].includes(action)) {
+      return NextResponse.json({ error: "Invalid action. Use 'approve' or 'reject'." }, { status: 400 });
+    }
+
+    const application = await prisma.partnerApplication.findUnique({
       where: { id: parseInt(id) },
-      data: {
-        status: "rejected",
-        reviewedBy: admin.email,
-        reviewedAt: new Date(),
-        reviewNotes: notes || null,
-      },
     });
 
-    const emailResult = await sendRejectionEmail(
-      application.email,
-      application.ownerName,
-      application.businessName,
-      notes
-    );
+    if (!application) {
+      return NextResponse.json({ error: "Application not found." }, { status: 404 });
+    }
+
+    if (application.status !== "pending") {
+      return NextResponse.json(
+        { error: `Application has already been ${application.status}.` },
+        { status: 400 }
+      );
+    }
+
+    let updateData: Record<string, unknown> = {
+      status: action === "approve" ? "approved" : "rejected",
+      reviewedAt: new Date(),
+      reviewedBy: admin,
+      adminNotes: adminNotes || null,
+    };
+
+    if (action === "approve") {
+      const approvalToken = generateToken();
+      updateData.approvalToken = approvalToken;
+      updateData.approvalTokenUsed = false;
+    }
+
+    const updated = await prisma.partnerApplication.update({
+      where: { id: parseInt(id) },
+      data: updateData,
+    });
+
+    // Send email notification
+    try {
+      if (action === "approve") {
+        await sendApprovalEmail(
+          updated.email,
+          updated.ownerName,
+          updated.businessName,
+          updated.approvalToken!
+        );
+      } else {
+        await sendRejectionEmail(updated.email, updated.ownerName, updated.businessName);
+      }
+    } catch (emailError) {
+      console.error("Email send failed:", emailError);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       success: true,
-      action: "rejected",
-      emailSent: emailResult.success,
+      application: updated,
+      message: `Application ${action === "approve" ? "approved" : "rejected"} successfully.`,
     });
+  } catch (error) {
+    console.error("Update application error:", error);
+    return NextResponse.json({ error: "Failed to update application." }, { status: 500 });
   }
 }

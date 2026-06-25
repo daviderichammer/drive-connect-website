@@ -2,39 +2,36 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 
-export const SESSION_COOKIE_NAME = "dc_host_session";
-export const SESSION_DURATION_DAYS = 30;
+export const SESSION_COOKIE = "dc_host_session";
+export const ADMIN_SESSION_COOKIE = "dc_admin_session";
+export const SESSION_DURATION_DAYS = 7;
 
-export async function createSession(hostId: number): Promise<string> {
-  const sessionToken = crypto.randomBytes(32).toString("hex");
+export function generateToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+export async function createHostSession(hostId: number): Promise<string> {
+  const token = generateToken();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + SESSION_DURATION_DAYS);
 
   await prisma.hostSession.create({
     data: {
-      sessionToken,
       hostId,
+      sessionToken: token,
       expiresAt,
     },
   });
 
-  return sessionToken;
+  return token;
 }
 
-export async function getSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+export async function getHostFromSession(token: string) {
   if (!token) return null;
 
   const session = await prisma.hostSession.findUnique({
     where: { sessionToken: token },
-    include: {
-      host: {
-        include: {
-          businessProfile: true,
-        },
-      },
-    },
+    include: { host: true },
   });
 
   if (!session || session.expiresAt < new Date()) {
@@ -44,27 +41,41 @@ export async function getSession() {
     return null;
   }
 
-  return session;
+  return session.host;
 }
 
-export async function deleteSession(token: string) {
-  await prisma.hostSession.deleteMany({
-    where: { sessionToken: token },
-  });
+export async function deleteHostSession(token: string) {
+  await prisma.hostSession.deleteMany({ where: { sessionToken: token } });
 }
 
-export async function getAdminSession() {
+export async function getCurrentHost() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("dc_admin_session")?.value;
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
+  return getHostFromSession(token);
+}
 
-  // Simple JWT-based admin session check
-  try {
-    const jwt = require("jsonwebtoken");
-    const secret = process.env.ADMIN_JWT_SECRET || "drive-connect-admin-secret-2024";
-    const payload = jwt.verify(token, secret) as { adminId: number; email: string; role: string };
-    return payload;
-  } catch {
+// Simple admin session store (in-memory for simplicity, backed by env)
+const ADMIN_SESSION_MAP = new Map<string, { email: string; expiresAt: Date }>();
+
+export function createAdminSession(email: string): string {
+  const token = generateToken();
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 8);
+  ADMIN_SESSION_MAP.set(token, { email, expiresAt });
+  return token;
+}
+
+export function getAdminFromSession(token: string): string | null {
+  if (!token) return null;
+  const session = ADMIN_SESSION_MAP.get(token);
+  if (!session || session.expiresAt < new Date()) {
+    ADMIN_SESSION_MAP.delete(token);
     return null;
   }
+  return session.email;
+}
+
+export function deleteAdminSession(token: string) {
+  ADMIN_SESSION_MAP.delete(token);
 }

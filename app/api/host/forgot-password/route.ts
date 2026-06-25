@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { generateToken } from "@/lib/auth";
 import { sendPasswordResetEmail } from "@/lib/email";
-import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,40 +12,33 @@ export async function POST(req: NextRequest) {
     }
 
     const host = await prisma.hostAccount.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: email.toLowerCase() },
     });
 
     // Always return success to prevent email enumeration
     if (!host || !host.isActive) {
-      return NextResponse.json({
-        success: true,
-        message: "If an account exists with that email, a reset link has been sent.",
-      });
+      return NextResponse.json({ success: true });
     }
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetExpiry = new Date();
-    resetExpiry.setHours(resetExpiry.getHours() + 1);
+    const resetToken = generateToken();
+    const resetTokenExpiry = new Date();
+    resetTokenExpiry.setHours(resetTokenExpiry.getHours() + 1);
 
     await prisma.hostAccount.update({
       where: { id: host.id },
-      data: {
-        passwordResetToken: resetToken,
-        passwordResetExpiry: resetExpiry,
-      },
+      data: { resetToken, resetTokenExpiry },
     });
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://5.161.189.93";
-    const resetLink = `${siteUrl}/host-login/reset-password?token=${resetToken}`;
+    try {
+      await sendPasswordResetEmail(host.email, host.ownerName, resetToken);
+    } catch (emailError) {
+      console.error("Failed to send reset email:", emailError);
+      // Don't fail the request if email sending fails
+    }
 
-    await sendPasswordResetEmail(host.email, host.name, resetLink);
-
-    return NextResponse.json({
-      success: true,
-      message: "If an account exists with that email, a reset link has been sent.",
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Forgot password error:", error);
-    return NextResponse.json({ error: "Failed to process request." }, { status: 500 });
+    return NextResponse.json({ error: "Request failed. Please try again." }, { status: 500 });
   }
 }

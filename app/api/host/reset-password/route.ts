@@ -19,15 +19,17 @@ export async function POST(req: NextRequest) {
     }
 
     const host = await prisma.hostAccount.findFirst({
-      where: { passwordResetToken: token },
+      where: {
+        resetToken: token,
+        resetTokenExpiry: { gt: new Date() },
+      },
     });
 
     if (!host) {
-      return NextResponse.json({ error: "Invalid or expired reset link." }, { status: 400 });
-    }
-
-    if (host.passwordResetExpiry && host.passwordResetExpiry < new Date()) {
-      return NextResponse.json({ error: "This reset link has expired. Please request a new one." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid or expired reset link. Please request a new one." },
+        { status: 400 }
+      );
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -36,17 +38,37 @@ export async function POST(req: NextRequest) {
       where: { id: host.id },
       data: {
         passwordHash,
-        passwordResetToken: null,
-        passwordResetExpiry: null,
+        resetToken: null,
+        resetTokenExpiry: null,
       },
     });
 
-    // Invalidate all existing sessions
-    await prisma.hostSession.deleteMany({ where: { hostId: host.id } });
-
-    return NextResponse.json({ success: true, message: "Password reset successfully. Please log in." });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Reset password error:", error);
-    return NextResponse.json({ error: "Failed to reset password." }, { status: 500 });
+    return NextResponse.json({ error: "Reset failed. Please try again." }, { status: 500 });
+  }
+}
+
+// GET: Validate reset token
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get("token");
+
+    if (!token) {
+      return NextResponse.json({ valid: false });
+    }
+
+    const host = await prisma.hostAccount.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: { gt: new Date() },
+      },
+    });
+
+    return NextResponse.json({ valid: !!host });
+  } catch (error) {
+    return NextResponse.json({ valid: false });
   }
 }

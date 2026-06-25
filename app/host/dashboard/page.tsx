@@ -1,235 +1,321 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface HostData {
   id: number;
   email: string;
-  name: string;
-  onboardingComplete: boolean;
+  businessName: string;
+  ownerName: string;
   onboardingStep: number;
-  businessProfile: {
-    businessName: string;
-    description: string | null;
-    serviceAreas: string | null;
-    phone: string | null;
-    logoUrl: string | null;
-    bankingComplete: boolean;
-  } | null;
+  onboardingCompleted: boolean;
+  profileCompleted: boolean;
+  insuranceVerified: boolean;
+  bankingInfoCompleted: boolean;
+}
+
+interface Vehicle {
+  id: number;
+  year: number;
+  make: string;
+  model: string;
+  dailyRate: number;
+  status: string;
+}
+
+function NavItem({ label, active = false }: { label: string; active?: boolean }) {
+  return (
+    <div style={{
+      padding: "10px 16px",
+      borderRadius: "6px",
+      backgroundColor: active ? "rgba(193, 18, 31, 0.1)" : "transparent",
+      color: active ? "#C1121F" : "#888888",
+      fontSize: "13px",
+      fontWeight: active ? 700 : 500,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: "10px",
+      letterSpacing: "0.02em",
+    }}>
+      {label}
+    </div>
+  );
+}
+
+function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+  return (
+    <div style={{
+      backgroundColor: "#111111",
+      border: "1px solid #1a1a1a",
+      borderRadius: "8px",
+      padding: "20px 24px",
+    }}>
+      <p style={{ color: "#555555", fontSize: "11px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 8px" }}>
+        {label}
+      </p>
+      <p style={{ color: "#ffffff", fontSize: "28px", fontWeight: 700, margin: "0 0 4px" }}>
+        {value}
+      </p>
+      {sub && <p style={{ color: "#555555", fontSize: "12px", margin: 0 }}>{sub}</p>}
+    </div>
+  );
 }
 
 export default function HostDashboardPage() {
   const router = useRouter();
   const [host, setHost] = useState<HostData | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch("/api/host/me");
-        if (!res.ok) {
-          router.push("/host-login");
-          return;
-        }
-        const data = await res.json();
-        setHost(data.host);
-
-        // Redirect to onboarding if not complete
-        if (!data.host.onboardingComplete) {
-          const step = data.host.onboardingStep;
-          if (step === 0) router.push("/host/onboarding/welcome");
-          else if (step === 1) router.push("/host/onboarding/profile");
-          else if (step === 2) router.push("/host/onboarding/vehicle");
-          else if (step === 3) router.push("/host/onboarding/insurance");
-          else if (step === 4) router.push("/host/onboarding/banking");
-          return;
-        }
-      } catch {
-        router.push("/host-login");
-      } finally {
-        setLoading(false);
+    Promise.all([
+      fetch("/api/host/me"),
+      fetch("/api/host/vehicles"),
+    ]).then(async ([meRes, vehiclesRes]) => {
+      if (meRes.status === 401) {
+        router.push("/host/login");
+        return;
       }
-    }
-    checkAuth();
+
+      const meData = await meRes.json();
+      if (!meData.authenticated) {
+        router.push("/host/login");
+        return;
+      }
+
+      if (!meData.host.onboardingCompleted) {
+        router.push("/host/onboarding");
+        return;
+      }
+
+      setHost(meData.host);
+
+      if (vehiclesRes.ok) {
+        const vehiclesData = await vehiclesRes.json();
+        setVehicles(vehiclesData.vehicles || []);
+      }
+
+      setLoading(false);
+    }).catch(() => router.push("/host/login"));
   }, [router]);
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     await fetch("/api/host/logout", { method: "POST" });
-    router.push("/host-login");
-  }
+    router.push("/host/login");
+  };
 
-  if (loading || !host) {
+  if (loading) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <p style={{ color: "#555555" }}>Loading your dashboard...</p>
+      <div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center", color: "#555555", fontFamily: "Inter, sans-serif" }}>
+        Loading your dashboard...
       </div>
     );
   }
 
-  const navItems = [
-    { label: "Dashboard", href: "/host/dashboard", active: true },
-    { label: "Inbox", href: "#", active: false },
-    { label: "Vehicles", href: "#", active: false },
-    { label: "Calendar", href: "#", active: false },
-    { label: "Bookings", href: "#", active: false },
-    { label: "Earnings", href: "#", active: false },
-    { label: "Claims", href: "#", active: false },
-    { label: "Ratings & Reviews", href: "#", active: false },
-    { label: "Tax Information", href: "#", active: false },
-    { label: "Customer Support", href: "#", active: false },
-    { label: "Business Analytics", href: "#", active: false },
-    { label: "Account Settings", href: "#", active: false },
-  ];
+  if (!host) return null;
+
+  const activeVehicles = vehicles.filter((v) => v.status === "active").length;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#000000", color: "#ffffff", fontFamily: "Inter, sans-serif", display: "flex" }}>
-      {/* Left Nav Rail */}
-      <div style={{ width: "240px", backgroundColor: "#0a0a0a", borderRight: "1px solid #1a1a1a", display: "flex", flexDirection: "column", flexShrink: 0 }}>
-        <div style={{ padding: "1.5rem", borderBottom: "1px solid #1a1a1a" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", fontFamily: "Inter, sans-serif", color: "#ffffff", display: "flex" }}>
+      {/* Sidebar */}
+      <aside style={{
+        width: "220px",
+        flexShrink: 0,
+        backgroundColor: "#000000",
+        borderRight: "1px solid #111111",
+        display: "flex",
+        flexDirection: "column",
+        padding: "24px 12px",
+      }}>
+        {/* Logo */}
+        <div style={{ padding: "0 4px", marginBottom: "32px" }}>
           <Link href="/" style={{ textDecoration: "none" }}>
-            <div style={{ color: "#ffffff", fontSize: "1rem", fontWeight: 900, letterSpacing: "0.15em" }}>DRIVE CONNECT</div>
+            <h1 style={{ color: "#ffffff", fontSize: "14px", fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 4px" }}>
+              DRIVE CONNECT
+            </h1>
           </Link>
-          <div style={{ color: "#DC2626", fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginTop: "0.25rem" }}>Partner Portal</div>
+          <p style={{ color: "#C1121F", fontSize: "9px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>
+            Partner Portal
+          </p>
         </div>
 
-        <nav style={{ flex: 1, padding: "1rem 0" }}>
-          {navItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              style={{
-                display: "block",
-                padding: "0.75rem 1.5rem",
-                color: item.active ? "#ffffff" : "#555555",
-                textDecoration: "none",
-                fontSize: "0.875rem",
-                fontWeight: item.active ? 700 : 400,
-                backgroundColor: item.active ? "#1a1a1a" : "transparent",
-                borderLeft: item.active ? "3px solid #DC2626" : "3px solid transparent",
-                transition: "all 0.15s ease",
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+        {/* Nav Items */}
+        <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px" }}>
+          <NavItem label="📊 Dashboard" active />
+          <NavItem label="📬 Inbox" />
+          <NavItem label="🚗 Vehicles" />
+          <NavItem label="📅 Calendar" />
+          <NavItem label="📋 Bookings" />
+          <NavItem label="💰 Earnings" />
+          <NavItem label="🛡️ Claims" />
+          <NavItem label="⭐ Reviews" />
+          <NavItem label="📈 Analytics" />
+          <NavItem label="⚙️ Settings" />
         </nav>
 
-        <div style={{ padding: "1rem", borderTop: "1px solid #1a1a1a" }}>
+        {/* User */}
+        <div style={{ borderTop: "1px solid #111111", paddingTop: "16px" }}>
+          <div style={{ padding: "0 4px", marginBottom: "12px" }}>
+            <p style={{ color: "#ffffff", fontSize: "13px", fontWeight: 600, margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {host.ownerName}
+            </p>
+            <p style={{ color: "#555555", fontSize: "11px", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {host.email}
+            </p>
+          </div>
           <button
             onClick={handleLogout}
-            style={{ width: "100%", backgroundColor: "transparent", border: "1px solid #333333", color: "#555555", padding: "0.625rem", borderRadius: "6px", cursor: "pointer", fontSize: "0.8125rem", fontFamily: "Inter, sans-serif" }}
+            style={{ width: "100%", backgroundColor: "transparent", border: "1px solid #222222", color: "#888888", padding: "8px", borderRadius: "6px", fontSize: "12px", cursor: "pointer", fontFamily: "Inter, sans-serif", textTransform: "uppercase", letterSpacing: "0.05em" }}
           >
             Log Out
           </button>
         </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
-      <div style={{ flex: 1, overflow: "auto" }}>
-        {/* Top Bar */}
-        <div style={{ backgroundColor: "#0a0a0a", borderBottom: "1px solid #1a1a1a", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700 }}>Dashboard</h1>
-            <p style={{ margin: 0, color: "#555555", fontSize: "0.8125rem" }}>
-              Welcome back, {host.name}
-              {host.businessProfile && ` — ${host.businessProfile.businessName}`}
-            </p>
-          </div>
-          <div style={{ fontSize: "0.75rem", color: "#555555" }}>
-            {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-          </div>
+      <main style={{ flex: 1, padding: "32px", overflow: "auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: "32px" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 700, margin: "0 0 4px" }}>
+            Welcome back, {host.ownerName.split(" ")[0]}
+          </h2>
+          <p style={{ color: "#555555", fontSize: "14px", margin: 0 }}>
+            {host.businessName} · Drive Network Partner
+          </p>
         </div>
 
-        <div style={{ padding: "2rem" }}>
-          {/* Alert Banner */}
-          <div style={{ backgroundColor: "#0a0500", border: "1px solid #f59e0b", borderRadius: "8px", padding: "1rem 1.5rem", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ color: "#f59e0b", fontSize: "1.25rem" }}>⚡</span>
+        {/* Onboarding Progress Banner */}
+        {(!host.profileCompleted || !host.insuranceVerified || !host.bankingInfoCompleted) && (
+          <div style={{
+            backgroundColor: "rgba(193, 18, 31, 0.05)",
+            border: "1px solid rgba(193, 18, 31, 0.2)",
+            borderRadius: "8px",
+            padding: "16px 20px",
+            marginBottom: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
             <div>
-              <div style={{ color: "#f59e0b", fontWeight: 700, fontSize: "0.875rem" }}>Phase 4 Coming Soon</div>
-              <div style={{ color: "#888888", fontSize: "0.8125rem" }}>Full host dashboard with bookings, calendar, earnings, and vehicle management is being built in Phase 4.</div>
+              <p style={{ color: "#ffffff", fontSize: "14px", fontWeight: 600, margin: "0 0 4px" }}>
+                Complete Your Profile
+              </p>
+              <p style={{ color: "#888888", fontSize: "13px", margin: 0 }}>
+                {!host.insuranceVerified ? "Insurance verification pending. " : ""}
+                {!host.bankingInfoCompleted ? "Banking info needed for payouts." : ""}
+              </p>
             </div>
+            <Link
+              href="/host/onboarding"
+              style={{ backgroundColor: "#C1121F", color: "#ffffff", padding: "8px 16px", borderRadius: "6px", textDecoration: "none", fontSize: "12px", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", whiteSpace: "nowrap" }}
+            >
+              Continue Setup
+            </Link>
           </div>
+        )}
 
-          {/* Stats Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
-            {[
-              { label: "Upcoming Reservations", value: "—", color: "#60a5fa" },
-              { label: "Vehicles Currently Rented", value: "—", color: "#22c55e" },
-              { label: "Pending Payments", value: "—", color: "#f59e0b" },
-              { label: "New Messages", value: "—", color: "#a78bfa" },
-              { label: "Monthly Revenue", value: "—", color: "#DC2626" },
-              { label: "Total Active Vehicles", value: "—", color: "#ffffff" },
-            ].map((stat) => (
-              <div key={stat.label} style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: "8px", padding: "1.5rem" }}>
-                <div style={{ fontSize: "2rem", fontWeight: 900, color: stat.color, marginBottom: "0.25rem" }}>{stat.value}</div>
-                <div style={{ fontSize: "0.75rem", color: "#555555", textTransform: "uppercase", letterSpacing: "0.05em" }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Profile Summary */}
-          {host.businessProfile && (
-            <div style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: "8px", padding: "1.5rem", marginBottom: "2rem" }}>
-              <h2 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1.25rem", marginTop: 0 }}>Your Business Profile</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
-                <div>
-                  <div style={{ fontSize: "0.6875rem", color: "#555555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Business Name</div>
-                  <div style={{ fontSize: "0.9375rem", color: "#ffffff" }}>{host.businessProfile.businessName}</div>
-                </div>
-                {host.businessProfile.serviceAreas && (
-                  <div>
-                    <div style={{ fontSize: "0.6875rem", color: "#555555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Service Areas</div>
-                    <div style={{ fontSize: "0.9375rem", color: "#ffffff" }}>{host.businessProfile.serviceAreas}</div>
-                  </div>
-                )}
-                <div>
-                  <div style={{ fontSize: "0.6875rem", color: "#555555", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>Banking Setup</div>
-                  <div style={{ fontSize: "0.9375rem", color: host.businessProfile.bankingComplete ? "#22c55e" : "#f59e0b" }}>
-                    {host.businessProfile.bankingComplete ? "✓ Complete" : "Pending"}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div style={{ backgroundColor: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: "8px", padding: "1.5rem" }}>
-            <h2 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "1.25rem", marginTop: 0 }}>Quick Actions</h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.75rem" }}>
-              {[
-                { label: "Add Vehicle", href: "#", icon: "🚗" },
-                { label: "View Calendar", href: "#", icon: "📅" },
-                { label: "Check Earnings", href: "#", icon: "💰" },
-                { label: "Message Renters", href: "#", icon: "💬" },
-              ].map((action) => (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "1rem",
-                    backgroundColor: "#111111",
-                    border: "1px solid #1a1a1a",
-                    borderRadius: "6px",
-                    textDecoration: "none",
-                    color: "#cccccc",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    transition: "border-color 0.15s ease",
-                  }}
-                >
-                  <span style={{ fontSize: "1.25rem" }}>{action.icon}</span>
-                  {action.label}
-                </Link>
-              ))}
-            </div>
-          </div>
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "32px" }}>
+          <StatCard label="Active Vehicles" value={activeVehicles} sub="in your fleet" />
+          <StatCard label="Total Vehicles" value={vehicles.length} sub="listed" />
+          <StatCard label="Upcoming Trips" value={0} sub="this week" />
+          <StatCard label="Monthly Revenue" value="$0" sub="payouts pending" />
         </div>
-      </div>
+
+        {/* Vehicles Table */}
+        <div style={{ backgroundColor: "#111111", border: "1px solid #1a1a1a", borderRadius: "8px", overflow: "hidden", marginBottom: "24px" }}>
+          <div style={{ padding: "20px 24px", borderBottom: "1px solid #1a1a1a", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h3 style={{ fontSize: "15px", fontWeight: 700, margin: 0 }}>Your Vehicles</h3>
+            <Link
+              href="/host/onboarding"
+              style={{ backgroundColor: "#C1121F", color: "#ffffff", padding: "8px 16px", borderRadius: "6px", textDecoration: "none", fontSize: "12px", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}
+            >
+              + Add Vehicle
+            </Link>
+          </div>
+
+          {vehicles.length === 0 ? (
+            <div style={{ padding: "48px", textAlign: "center", color: "#555555" }}>
+              <p style={{ fontSize: "16px", marginBottom: "8px" }}>No vehicles listed yet.</p>
+              <p style={{ fontSize: "13px" }}>Add your first vehicle to start accepting bookings.</p>
+            </div>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #1a1a1a" }}>
+                  {["Vehicle", "Daily Rate", "Status", "Actions"].map((h) => (
+                    <th key={h} style={{ padding: "12px 20px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#555555", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {vehicles.map((vehicle) => (
+                  <tr key={vehicle.id} style={{ borderBottom: "1px solid #111111" }}>
+                    <td style={{ padding: "14px 20px" }}>
+                      <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                        {vehicle.year} {vehicle.make} {vehicle.model}
+                      </span>
+                    </td>
+                    <td style={{ padding: "14px 20px", fontSize: "14px" }}>
+                      ${Number(vehicle.dailyRate).toFixed(2)}/day
+                    </td>
+                    <td style={{ padding: "14px 20px" }}>
+                      <span style={{
+                        backgroundColor: vehicle.status === "active" ? "rgba(0, 200, 100, 0.1)" : "rgba(255, 255, 255, 0.05)",
+                        color: vehicle.status === "active" ? "#00C864" : "#888888",
+                        padding: "4px 10px",
+                        borderRadius: "4px",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        textTransform: "capitalize",
+                      }}>
+                        {vehicle.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: "14px 20px" }}>
+                      <button style={{ backgroundColor: "transparent", border: "1px solid #333333", color: "#888888", padding: "6px 12px", borderRadius: "4px", fontSize: "11px", cursor: "pointer", fontFamily: "Inter, sans-serif" }}>
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Quick Links */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          {[
+            { title: "Inbox", desc: "View messages from renters", icon: "📬" },
+            { title: "Bookings", desc: "Manage your reservations", icon: "📋" },
+            { title: "Earnings", desc: "Track your revenue", icon: "💰" },
+          ].map((item) => (
+            <div key={item.title} style={{
+              backgroundColor: "#111111",
+              border: "1px solid #1a1a1a",
+              borderRadius: "8px",
+              padding: "20px",
+              cursor: "pointer",
+            }}>
+              <div style={{ fontSize: "24px", marginBottom: "8px" }}>{item.icon}</div>
+              <h4 style={{ color: "#ffffff", fontSize: "14px", fontWeight: 700, margin: "0 0 4px" }}>{item.title}</h4>
+              <p style={{ color: "#555555", fontSize: "12px", margin: 0 }}>{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <p style={{ textAlign: "center", color: "#222222", fontSize: "11px", marginTop: "48px", fontStyle: "italic" }}>
+          Drive Connect IS Principled — Fairness · Integrity · Trust · Independence · Accountability · Shared Success
+        </p>
+      </main>
     </div>
   );
 }

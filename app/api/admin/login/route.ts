@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createAdminSession, ADMIN_SESSION_COOKIE } from "@/lib/auth";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || "drive-connect-admin-secret-2024";
-const ADMIN_COOKIE = "dc_admin_session";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,37 +12,33 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = await prisma.adminUser.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      where: { email: email.toLowerCase() },
     });
 
-    if (!admin) {
+    if (!admin || !admin.isActive) {
       return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
     }
 
-    const passwordMatch = await bcrypt.compare(password, admin.passwordHash);
-    if (!passwordMatch) {
+    const valid = await bcrypt.compare(password, admin.passwordHash);
+    if (!valid) {
       return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
     }
 
-    const token = jwt.sign(
-      { adminId: admin.id, email: admin.email, role: admin.role },
-      ADMIN_JWT_SECRET,
-      { expiresIn: "8h" }
-    );
+    const token = createAdminSession(admin.email);
 
     const response = NextResponse.json({
       success: true,
-      admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role },
+      admin: { email: admin.email, name: admin.name },
     });
 
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 8);
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 8);
 
-    response.cookies.set(ADMIN_COOKIE, token, {
+    response.cookies.set(ADMIN_SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      expires: expiresAt,
+      expires,
       path: "/",
     });
 

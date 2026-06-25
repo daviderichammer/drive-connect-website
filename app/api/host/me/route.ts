@@ -1,21 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getCurrentHost } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
-  const session = await getSession();
+  try {
+    const host = await getCurrentHost();
 
-  if (!session) {
-    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
+    if (!host) {
+      return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
+
+    return NextResponse.json({
+      authenticated: true,
+      host: {
+        id: host.id,
+        email: host.email,
+        businessName: host.businessName,
+        ownerName: host.ownerName,
+        phone: host.phone,
+        logoUrl: host.logoUrl,
+        description: host.description,
+        serviceAreas: host.serviceAreas,
+        profileCompleted: host.profileCompleted,
+        onboardingStep: host.onboardingStep,
+        onboardingCompleted: host.onboardingCompleted,
+        insuranceVerified: host.insuranceVerified,
+        bankingInfoCompleted: host.bankingInfoCompleted,
+        isActive: host.isActive,
+      },
+    });
+  } catch (error) {
+    console.error("Get current host error:", error);
+    return NextResponse.json({ authenticated: false }, { status: 500 });
   }
-
-  return NextResponse.json({
-    host: {
-      id: session.host.id,
-      email: session.host.email,
-      name: session.host.name,
-      onboardingComplete: session.host.onboardingComplete,
-      onboardingStep: session.host.onboardingStep,
-      businessProfile: session.host.businessProfile,
-    },
-  });
 }
