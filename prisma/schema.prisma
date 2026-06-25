@@ -9,160 +9,168 @@ datasource db {
 }
 
 model PartnerApplication {
-  id                      Int      @id @default(autoincrement())
-  businessName            String   @db.VarChar(255)
-  ownerName               String   @db.VarChar(255)
-  email                   String   @db.VarChar(255)
-  phone                   String   @db.VarChar(50)
-  primaryCity             String   @db.VarChar(255)
-  additionalCities        String?  @db.Text
+  id                      Int          @id @default(autoincrement())
+  businessName            String       @db.VarChar(255)
+  ownerName               String       @db.VarChar(255)
+  email                   String       @db.VarChar(255)
+  phone                   String       @db.VarChar(50)
+  primaryCity             String       @db.VarChar(255)
+  additionalCities        String?      @db.Text
   numberOfVehicles        Int
-  vehicleTypes            String   @db.Text
-  currentPlatforms        String   @db.Text
-  turoProfileUrl          String?  @db.VarChar(500)
-  offersAirportDelivery   Boolean  @default(false)
-  offersHomeDelivery      Boolean  @default(false)
-  hasCommercialInsurance  Boolean  @default(false)
-  supportsSameDayBookings Boolean  @default(false)
-  operates24x7            Boolean  @default(false)
-  wouldUseDCSupport       Boolean  @default(false)
-  status                  String   @default("pending") @db.VarChar(50)
-  adminNotes              String?  @db.Text
+  vehicleTypes            String       @db.Text
+  currentPlatforms        String       @db.Text
+  turoProfileUrl          String?      @db.VarChar(500)
+  offersAirportDelivery   Boolean      @default(false)
+  offersHomeDelivery      Boolean      @default(false)
+  hasCommercialInsurance  Boolean      @default(false)
+  supportsSameDayBookings Boolean      @default(false)
+  operates24x7            Boolean      @default(false)
+  wouldUseDCSupport       Boolean      @default(false)
+  status                  String       @default("pending") @db.VarChar(50)
+  adminNotes              String?      @db.Text
   reviewedAt              DateTime?
-  reviewedBy              String?  @db.VarChar(255)
-  approvalToken           String?  @db.VarChar(255)
-  approvalTokenUsed       Boolean  @default(false)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  reviewedBy              String?      @db.VarChar(255)
+  approvalToken           String?      @db.VarChar(255)
+  approvalTokenUsed       Boolean      @default(false)
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
   hostAccount             HostAccount?
 
   @@map("partner_applications")
 }
 
 model HostAccount {
-  id                    Int      @id @default(autoincrement())
-  applicationId         Int      @unique
-  email                 String   @db.VarChar(255) @unique
-  passwordHash          String   @db.VarChar(255)
-  businessName          String   @db.VarChar(255)
-  ownerName             String   @db.VarChar(255)
-  phone                 String?  @db.VarChar(50)
-  logoUrl               String?  @db.VarChar(500)
-  description           String?  @db.Text
-  serviceAreas          String?  @db.Text
-  profileCompleted      Boolean  @default(false)
-  onboardingStep        Int      @default(0)
-  onboardingCompleted   Boolean  @default(false)
-  insuranceDocUrl       String?  @db.VarChar(500)
-  insuranceDocName      String?  @db.VarChar(255)
-  insuranceVerified     Boolean  @default(false)
-  bankAccountName       String?  @db.VarChar(255)
-  bankAccountNumber     String?  @db.VarChar(255)
-  bankRoutingNumber     String?  @db.VarChar(50)
-  bankAccountType       String?  @db.VarChar(50)
-  payoutEmail           String?  @db.VarChar(255)
-  bankingInfoCompleted  Boolean  @default(false)
-  resetToken            String?  @db.VarChar(255)
-  resetTokenExpiry      DateTime?
-  isActive              Boolean  @default(true)
-  lastLoginAt           DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  application           PartnerApplication @relation(fields: [applicationId], references: [id])
-  vehicles              Vehicle[]
-  sessions              HostSession[]
-  bookings              Booking[]
+  id                   Int                @id @default(autoincrement())
+  applicationId        Int                @unique
+  email                String             @unique @db.VarChar(255)
+  passwordHash         String             @db.VarChar(255)
+  businessName         String             @db.VarChar(255)
+  ownerName            String             @db.VarChar(255)
+  phone                String?            @db.VarChar(50)
+  logoUrl              String?            @db.VarChar(500)
+  description          String?            @db.Text
+  serviceAreas         String?            @db.Text
+  profileCompleted     Boolean            @default(false)
+  onboardingStep       Int                @default(0)
+  onboardingCompleted  Boolean            @default(false)
+  insuranceDocUrl      String?            @db.VarChar(500)
+  insuranceDocName     String?            @db.VarChar(255)
+  insuranceVerified    Boolean            @default(false)
+  bankAccountName      String?            @db.VarChar(255)
+  bankAccountNumber    String?            @db.VarChar(255)
+  bankRoutingNumber    String?            @db.VarChar(50)
+  bankAccountType      String?            @db.VarChar(50)
+  payoutEmail          String?            @db.VarChar(255)
+  bankingInfoCompleted Boolean            @default(false)
+  resetToken           String?            @db.VarChar(255)
+  resetTokenExpiry     DateTime?
+  isActive             Boolean            @default(true)
+  lastLoginAt          DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  application          PartnerApplication @relation(fields: [applicationId], references: [id])
+  vehicles             Vehicle[]
+  sessions             HostSession[]
+  bookings             Booking[]
+  messages             Message[]
+  claims               Claim[]
 
   @@map("host_accounts")
 }
 
 model HostSession {
-  id           Int      @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   hostId       Int
-  sessionToken String   @db.VarChar(255) @unique
+  sessionToken String      @unique @db.VarChar(255)
   expiresAt    DateTime
-  createdAt    DateTime @default(now())
+  createdAt    DateTime    @default(now())
   host         HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
   @@map("host_sessions")
 }
 
 model Vehicle {
-  id                   Int      @id @default(autoincrement())
-  hostId               Int
-  year                 Int
-  make                 String   @db.VarChar(100)
-  model                String   @db.VarChar(100)
-  trim                 String?  @db.VarChar(100)
-  color                String?  @db.VarChar(50)
-  licensePlate         String?  @db.VarChar(50)
-  vin                  String?  @db.VarChar(50)
-  mileage              Int?
-  seats                Int      @default(5)
-  fuelType             String   @default("Gasoline") @db.VarChar(50)
-  transmission         String   @default("Automatic") @db.VarChar(50)
-  dailyRate            Decimal  @db.Decimal(10, 2)
-  weeklyRate           Decimal? @db.Decimal(10, 2)
-  monthlyRate          Decimal? @db.Decimal(10, 2)
-  securityDeposit      Decimal? @db.Decimal(10, 2)
-  mileageIncluded      Int?
-  hasGPS               Boolean  @default(false)
-  hasBluetooth         Boolean  @default(false)
-  hasCarPlay           Boolean  @default(false)
-  hasChargingCable     Boolean  @default(false)
-  hasChildSeat         Boolean  @default(false)
-  offersAirportPickup  Boolean  @default(false)
-  offersHomeDelivery   Boolean  @default(false)
-  deliveryFee          Decimal? @db.Decimal(10, 2)
-  description          String?  @db.Text
-  vehicleRules         String?  @db.Text
-  pickupInstructions   String?  @db.Text
-  status               String   @default("active") @db.VarChar(50)
-  photos               String?  @db.Text
-  category             String   @default("Sedan") @db.VarChar(50)
-  city                 String?  @db.VarChar(255)
-  zipCode              String?  @db.VarChar(20)
-  rating               Decimal  @default(0.0) @db.Decimal(3, 1)
-  trips                Int      @default(0)
-  unlimitedMiles       Boolean  @default(false)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  host                 HostAccount @relation(fields: [hostId], references: [id])
-  bookings             Booking[]
+  id                  Int         @id @default(autoincrement())
+  hostId              Int
+  year                Int
+  make                String      @db.VarChar(100)
+  model               String      @db.VarChar(100)
+  trim                String?     @db.VarChar(100)
+  color               String?     @db.VarChar(50)
+  licensePlate        String?     @db.VarChar(50)
+  vin                 String?     @db.VarChar(50)
+  mileage             Int?
+  seats               Int         @default(5)
+  fuelType            String      @default("Gasoline") @db.VarChar(50)
+  transmission        String      @default("Automatic") @db.VarChar(50)
+  dailyRate           Decimal     @db.Decimal(10, 2)
+  weeklyRate          Decimal?    @db.Decimal(10, 2)
+  monthlyRate         Decimal?    @db.Decimal(10, 2)
+  securityDeposit     Decimal?    @db.Decimal(10, 2)
+  mileageIncluded     Int?
+  hasGPS              Boolean     @default(false)
+  hasBluetooth        Boolean     @default(false)
+  hasCarPlay          Boolean     @default(false)
+  hasChargingCable    Boolean     @default(false)
+  hasChildSeat        Boolean     @default(false)
+  offersAirportPickup Boolean     @default(false)
+  offersHomeDelivery  Boolean     @default(false)
+  deliveryFee         Decimal?    @db.Decimal(10, 2)
+  description         String?     @db.Text
+  vehicleRules        String?     @db.Text
+  pickupInstructions  String?     @db.Text
+  status              String      @default("active") @db.VarChar(50)
+  photos              String?     @db.Text
+  category            String      @default("Sedan") @db.VarChar(50)
+  city                String?     @db.VarChar(255)
+  zipCode             String?     @db.VarChar(20)
+  rating              Decimal     @default(0.0) @db.Decimal(3, 1)
+  trips               Int         @default(0)
+  unlimitedMiles      Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  host                HostAccount @relation(fields: [hostId], references: [id])
+  bookings            Booking[]
+  claims              Claim[]
 
   @@map("vehicles")
 }
 
 model Booking {
-  id                   Int      @id @default(autoincrement())
-  bookingReference     String   @unique @db.VarChar(50)
-  vehicleId            Int
-  hostId               Int
-  renterFirstName      String   @db.VarChar(100)
-  renterLastName       String   @db.VarChar(100)
-  renterEmail          String   @db.VarChar(255)
-  renterPhone          String   @db.VarChar(50)
-  renterLicenseNumber  String   @db.VarChar(100)
-  renterLicenseState   String   @db.VarChar(50)
-  startDate            DateTime
-  endDate              DateTime
-  pickupTime           String   @db.VarChar(20)
-  returnTime           String   @db.VarChar(20)
-  deliveryOption       String   @db.VarChar(50)
-  deliveryAddress      String?  @db.VarChar(255)
-  protectionPlan       String   @db.VarChar(50)
-  basePrice            Decimal  @db.Decimal(10, 2)
-  protectionPrice      Decimal  @db.Decimal(10, 2)
-  deliveryPrice        Decimal  @db.Decimal(10, 2)
-  taxes                Decimal  @db.Decimal(10, 2)
-  totalPrice           Decimal  @db.Decimal(10, 2)
-  status               String   @default("pending") @db.VarChar(50) // pending, confirmed, active, completed, cancelled
-  paymentStatus        String   @default("pending") @db.VarChar(50) // pending, paid, refunded
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
-  vehicle              Vehicle     @relation(fields: [vehicleId], references: [id])
-  host                 HostAccount @relation(fields: [hostId], references: [id])
+  id                  Int      @id @default(autoincrement())
+  bookingReference    String   @unique @db.VarChar(50)
+  vehicleId           Int
+  hostId              Int
+  renterFirstName     String   @db.VarChar(100)
+  renterLastName      String   @db.VarChar(100)
+  renterEmail         String   @db.VarChar(255)
+  renterPhone         String   @db.VarChar(50)
+  renterLicenseNumber String   @db.VarChar(100)
+  renterLicenseState  String   @db.VarChar(50)
+  startDate           DateTime
+  endDate             DateTime
+  pickupTime          String   @db.VarChar(20)
+  returnTime          String   @db.VarChar(20)
+  deliveryOption      String   @db.VarChar(50)
+  deliveryAddress     String?  @db.VarChar(255)
+  protectionPlan      String   @db.VarChar(50)
+  basePrice           Decimal  @db.Decimal(10, 2)
+  protectionPrice     Decimal  @db.Decimal(10, 2)
+  deliveryPrice       Decimal  @db.Decimal(10, 2)
+  taxes               Decimal  @db.Decimal(10, 2)
+  totalPrice          Decimal  @db.Decimal(10, 2)
+  status              String   @default("pending") @db.VarChar(50) // pending, confirmed, active, completed, cancelled
+  paymentStatus       String   @default("pending") @db.VarChar(50) // pending, paid, refunded
+  hostPayoutAmount    Decimal? @db.Decimal(10, 2)
+  platformFeeAmount   Decimal? @db.Decimal(10, 2)
+  payoutStatus        String   @default("pending") @db.VarChar(50) // pending, processing, paid
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  vehicle  Vehicle     @relation(fields: [vehicleId], references: [id])
+  host     HostAccount @relation(fields: [hostId], references: [id])
+  messages Message[]
+  claims   Claim[]
 
   @@map("bookings")
 }
@@ -180,7 +188,7 @@ model ContactSubmission {
 
 model AdminUser {
   id           Int      @id @default(autoincrement())
-  email        String   @db.VarChar(255) @unique
+  email        String   @unique @db.VarChar(255)
   passwordHash String   @db.VarChar(255)
   name         String   @db.VarChar(255)
   isActive     Boolean  @default(true)
@@ -188,4 +196,40 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 
   @@map("admin_users")
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  bookingId   Int?
+  hostId      Int
+  renterEmail String   @db.VarChar(255)
+  senderType  String   @db.VarChar(50) // 'host', 'renter', 'system'
+  content     String   @db.Text
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  booking Booking?    @relation(fields: [bookingId], references: [id])
+  host    HostAccount @relation(fields: [hostId], references: [id])
+
+  @@map("messages")
+}
+
+model Claim {
+  id             Int      @id @default(autoincrement())
+  claimReference String   @unique @db.VarChar(50)
+  bookingId      Int
+  hostId         Int
+  vehicleId      Int
+  status         String   @default("open") @db.VarChar(50)
+  description    String   @db.Text
+  photos         String?  @db.Text
+  estimatedCost  Decimal? @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  booking Booking     @relation(fields: [bookingId], references: [id])
+  host    HostAccount @relation(fields: [hostId], references: [id])
+  vehicle Vehicle     @relation(fields: [vehicleId], references: [id])
+
+  @@map("claims")
 }
