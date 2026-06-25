@@ -1,5 +1,4 @@
 // Drive Connect - Prisma Schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -28,8 +27,14 @@ model PartnerApplication {
   operates24x7            Boolean  @default(false)
   wouldUseDCSupport       Boolean  @default(false)
   status                  String   @default("pending") @db.VarChar(50)
+  reviewedBy              String?  @db.VarChar(255)
+  reviewedAt              DateTime?
+  reviewNotes             String?  @db.Text
+  approvalToken           String?  @db.VarChar(255)
+  approvalTokenExpiry     DateTime?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+  hostAccount             HostAccount?
 
   @@map("partner_applications")
 }
@@ -43,4 +48,103 @@ model ContactSubmission {
   createdAt DateTime @default(now())
 
   @@map("contact_submissions")
+}
+
+model HostAccount {
+  id                    Int      @id @default(autoincrement())
+  email                 String   @unique @db.VarChar(255)
+  passwordHash          String   @db.VarChar(255)
+  name                  String   @db.VarChar(255)
+  applicationId         Int      @unique
+  application           PartnerApplication @relation(fields: [applicationId], references: [id])
+  isActive              Boolean  @default(true)
+  onboardingComplete    Boolean  @default(false)
+  onboardingStep        Int      @default(0)
+  passwordResetToken    String?  @db.VarChar(255)
+  passwordResetExpiry   DateTime?
+  lastLoginAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  businessProfile       BusinessProfile?
+  vehicles              Vehicle[]
+  sessions              HostSession[]
+
+  @@map("host_accounts")
+}
+
+model HostSession {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique @db.VarChar(255)
+  hostId       Int
+  host         HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("host_sessions")
+}
+
+model BusinessProfile {
+  id              Int      @id @default(autoincrement())
+  hostId          Int      @unique
+  host            HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  businessName    String   @db.VarChar(255)
+  description     String?  @db.Text
+  logoUrl         String?  @db.VarChar(500)
+  serviceAreas    String?  @db.Text
+  phone           String?  @db.VarChar(50)
+  website         String?  @db.VarChar(255)
+  insuranceDoc    String?  @db.VarChar(500)
+  insuranceExpiry DateTime?
+  bankingComplete Boolean  @default(false)
+  bankingInfo     String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("business_profiles")
+}
+
+model Vehicle {
+  id                    Int      @id @default(autoincrement())
+  hostId                Int
+  host                  HostAccount @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  year                  Int
+  make                  String   @db.VarChar(100)
+  model                 String   @db.VarChar(100)
+  trim                  String?  @db.VarChar(100)
+  color                 String?  @db.VarChar(50)
+  licensePlate          String?  @db.VarChar(50)
+  vin                   String?  @db.VarChar(50)
+  mileage               Int?
+  fuelType              String?  @db.VarChar(50)
+  transmission          String?  @db.VarChar(50)
+  seats                 Int?
+  dailyRate             Float
+  weeklyRate            Float?
+  monthlyRate           Float?
+  securityDeposit       Float?
+  mileageIncluded       Int?
+  description           String?  @db.Text
+  features              String?  @db.Text
+  photos                String?  @db.Text
+  offersAirportDelivery Boolean  @default(false)
+  offersHomeDelivery    Boolean  @default(false)
+  smokingAllowed        Boolean  @default(false)
+  petsAllowed           Boolean  @default(false)
+  status                String   @default("active") @db.VarChar(50)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("vehicles")
+}
+
+model AdminUser {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  name         String   @db.VarChar(255)
+  role         String   @default("admin") @db.VarChar(50)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
 }
