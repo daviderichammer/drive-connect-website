@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DashboardShell from "@/components/DashboardShell";
 
@@ -32,7 +32,7 @@ interface Message {
   createdAt: string;
 }
 
-export default function MessagesPage() {
+function MessagesPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [host, setHost] = useState<HostData | null>(null);
@@ -300,5 +300,13 @@ export default function MessagesPage() {
         </div>
       </div>
     </DashboardShell>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "#555", fontFamily: "Inter, sans-serif" }}>Loading...</div>}>
+      <MessagesPageInner />
+    </Suspense>
   );
 }

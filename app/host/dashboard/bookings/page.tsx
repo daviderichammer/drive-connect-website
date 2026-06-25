@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DashboardShell from "@/components/DashboardShell";
@@ -70,7 +70,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function BookingsPage() {
+function BookingsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [host, setHost] = useState<HostData | null>(null);
@@ -392,5 +392,13 @@ export default function BookingsPage() {
         )}
       </div>
     </DashboardShell>
+  );
+}
+
+export default function BookingsPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "#555", fontFamily: "Inter, sans-serif" }}>Loading...</div>}>
+      <BookingsPageInner />
+    </Suspense>
   );
 }

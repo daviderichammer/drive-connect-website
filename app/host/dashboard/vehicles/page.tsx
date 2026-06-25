@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DashboardShell from "@/components/DashboardShell";
 
@@ -118,7 +118,7 @@ const emptyForm = {
 
 type FormData = typeof emptyForm;
 
-export default function VehiclesPage() {
+function VehiclesPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [host, setHost] = useState<HostData | null>(null);
@@ -566,5 +566,13 @@ export default function VehiclesPage() {
         )}
       </div>
     </DashboardShell>
+  );
+}
+
+export default function VehiclesPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", color: "#555", fontFamily: "Inter, sans-serif" }}>Loading...</div>}>
+      <VehiclesPageInner />
+    </Suspense>
   );
 }
