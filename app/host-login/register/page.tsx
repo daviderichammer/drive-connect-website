@@ -137,10 +137,18 @@ function RegisterForm() {
   );
 }
 
-export default function RegisterPage() {
+function RegisterPageInner() {
   return (
     <Suspense fallback={<div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center" }}><p style={{ color: "#555555" }}>Loading...</p></div>}>
       <RegisterForm />
+    </Suspense>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <RegisterPageInner />
     </Suspense>
   );
 }

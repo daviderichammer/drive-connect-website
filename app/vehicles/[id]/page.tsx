@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -83,7 +83,7 @@ const PROTECTION_PLANS = [
   },
 ];
 
-export default function VehicleDetailPage() {
+function VehicleDetailPageInner() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -612,5 +612,13 @@ export default function VehicleDetailPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function VehicleDetailPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <VehicleDetailPageInner />
+    </Suspense>
   );
 }

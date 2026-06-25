@@ -393,7 +393,7 @@ function ReviewsContent() {
   );
 }
 
-export default function RenterReviewsPage() {
+function RenterReviewsPageInner() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -401,6 +401,14 @@ export default function RenterReviewsPage() {
       </div>
     }>
       <ReviewsContent />
+    </Suspense>
+  );
+}
+
+export default function RenterReviewsPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <RenterReviewsPageInner />
     </Suspense>
   );
 }

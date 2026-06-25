@@ -154,7 +154,7 @@ function ResetPasswordForm() {
   );
 }
 
-export default function RenterResetPasswordPage() {
+function RenterResetPasswordPageInner() {
   return (
     <>
       <nav style={{
@@ -186,5 +186,13 @@ export default function RenterResetPasswordPage() {
         </Suspense>
       </div>
     </>
+  );
+}
+
+export default function RenterResetPasswordPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <RenterResetPasswordPageInner />
+    </Suspense>
   );
 }

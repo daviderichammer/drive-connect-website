@@ -251,7 +251,7 @@ function RegisterForm() {
   );
 }
 
-export default function HostRegisterPage() {
+function HostRegisterPageInner() {
   return (
     <div style={{
       minHeight: "100vh",
@@ -305,5 +305,13 @@ export default function HostRegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function HostRegisterPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <HostRegisterPageInner />
+    </Suspense>
   );
 }

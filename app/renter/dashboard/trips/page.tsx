@@ -486,7 +486,7 @@ function TripsContent() {
   );
 }
 
-export default function RenterTripsPage() {
+function RenterTripsPageInner() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -494,6 +494,14 @@ export default function RenterTripsPage() {
       </div>
     }>
       <TripsContent />
+    </Suspense>
+  );
+}
+
+export default function RenterTripsPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <RenterTripsPageInner />
     </Suspense>
   );
 }

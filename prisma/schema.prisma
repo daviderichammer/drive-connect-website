@@ -379,30 +379,30 @@ model FraudSignal {
 }
 
 model SippCode {
-  id               Int      @id @default(autoincrement())
-  code             String   @unique @db.VarChar(10)
-  name             String   @db.VarChar(100)
-  description      String?  @db.VarChar(255)
-  category         String   @db.VarChar(50)
-  baseRatePerDay   Decimal  @db.Decimal(10, 2)
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  opportunities    BookingOpportunity[]
+  id                 Int      @id @default(autoincrement())
+  code               String   @unique @db.VarChar(10)
+  name               String   @db.VarChar(100)
+  description        String?  @db.VarChar(255)
+  category           String   @db.VarChar(50)
+  baseRatePerDay     Decimal  @map("base_rate_per_day") @db.Decimal(10, 2)
+  isActive           Boolean  @default(true) @map("is_active")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  opportunities      BookingOpportunity[]
   @@map("sipp_codes")
 }
 
 model MarketPricing {
   id               Int      @id @default(autoincrement())
-  marketName       String   @unique @db.VarChar(100)
-  marketCode       String   @unique @db.VarChar(20)
+  marketName       String   @unique @map("market_name") @db.VarChar(100)
+  marketCode       String   @unique @map("market_code") @db.VarChar(20)
   state            String?  @db.VarChar(50)
   country          String   @default("US") @db.VarChar(50)
-  priceMultiplier  Decimal  @default(1.0000) @db.Decimal(5, 4)
-  acquisitionCost  Decimal  @default(15.00) @db.Decimal(10, 2)
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  priceMultiplier  Decimal  @default(1.0000) @map("price_multiplier") @db.Decimal(5, 4)
+  acquisitionCost  Decimal  @default(15.00) @map("acquisition_cost") @db.Decimal(10, 2)
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
   opportunities    BookingOpportunity[]
   @@map("market_pricing")
 }
@@ -424,27 +424,27 @@ model PricingRule {
 
 model BookingOpportunity {
   id                   Int      @id @default(autoincrement())
-  opportunityReference String   @unique @db.VarChar(50)
-  sippCodeId           Int
-  marketId             Int
-  pickupLocation       String   @db.VarChar(255)
-  dropoffLocation      String   @db.VarChar(255)
-  pickupDate           DateTime @db.Date
-  dropoffDate          DateTime @db.Date
-  rentalDays           Int
-  renterName           String?  @db.VarChar(255)
-  renterEmail          String?  @db.VarChar(255)
-  retailPricePerDay    Decimal  @db.Decimal(10, 2)
-  retailPriceTotal     Decimal  @db.Decimal(10, 2)
-  minimumBidPerDay     Decimal  @db.Decimal(10, 2)
-  minimumBidTotal      Decimal  @db.Decimal(10, 2)
-  biddingWindowHours   Int      @default(4)
-  biddingClosesAt      DateTime
+  opportunityReference String   @unique @map("opportunity_reference") @db.VarChar(50)
+  sippCodeId           Int      @map("sipp_code_id")
+  marketId             Int      @map("market_id")
+  pickupLocation       String   @map("pickup_location") @db.VarChar(255)
+  dropoffLocation      String   @map("dropoff_location") @db.VarChar(255)
+  pickupDate           DateTime @map("pickup_date") @db.Date
+  dropoffDate          DateTime @map("dropoff_date") @db.Date
+  rentalDays           Int      @map("rental_days")
+  renterName           String?  @map("renter_name") @db.VarChar(255)
+  renterEmail          String?  @map("renter_email") @db.VarChar(255)
+  retailPricePerDay    Decimal  @map("retail_price_per_day") @db.Decimal(10, 2)
+  retailPriceTotal     Decimal  @map("retail_price_total") @db.Decimal(10, 2)
+  minimumBidPerDay     Decimal  @map("minimum_bid_per_day") @db.Decimal(10, 2)
+  minimumBidTotal      Decimal  @map("minimum_bid_total") @db.Decimal(10, 2)
+  biddingWindowHours   Int      @default(4) @map("bidding_window_hours")
+  biddingClosesAt      DateTime @map("bidding_closes_at")
   status               String   @default("open") @db.VarChar(50)
-  autoAcceptLowest     Boolean  @default(true)
-  priceBreakdown       String?  @db.Text
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  autoAcceptLowest     Boolean  @default(true) @map("auto_accept_lowest")
+  priceBreakdown       String?  @map("price_breakdown") @db.Text
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
   sippCode             SippCode       @relation(fields: [sippCodeId], references: [id])
   market               MarketPricing  @relation(fields: [marketId], references: [id])
   bids                 OperatorBid[]
@@ -454,18 +454,18 @@ model BookingOpportunity {
 
 model OperatorBid {
   id                      Int      @id @default(autoincrement())
-  opportunityId           Int
-  operatorId              Int
-  bidPerDay               Decimal  @db.Decimal(10, 2)
-  bidTotal                Decimal  @db.Decimal(10, 2)
-  estimatedMarginPerDay   Decimal  @db.Decimal(10, 2)
-  estimatedMarginTotal    Decimal  @db.Decimal(10, 2)
+  opportunityId           Int      @map("opportunity_id")
+  operatorId              Int      @map("operator_id")
+  bidPerDay               Decimal  @map("bid_per_day") @db.Decimal(10, 2)
+  bidTotal                Decimal  @map("bid_total") @db.Decimal(10, 2)
+  estimatedMarginPerDay   Decimal  @map("estimated_margin_per_day") @db.Decimal(10, 2)
+  estimatedMarginTotal    Decimal  @map("estimated_margin_total") @db.Decimal(10, 2)
   status                  String   @default("pending") @db.VarChar(50)
   notes                   String?  @db.Text
-  submittedAt             DateTime @default(now())
-  withdrawnAt             DateTime?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  submittedAt             DateTime @default(now()) @map("submitted_at")
+  withdrawnAt             DateTime? @map("withdrawn_at")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
   opportunity             BookingOpportunity @relation(fields: [opportunityId], references: [id])
   operator                HostAccount        @relation(fields: [operatorId], references: [id])
   settlement              BidSettlement?
@@ -475,25 +475,25 @@ model OperatorBid {
 
 model BidSettlement {
   id                    Int      @id @default(autoincrement())
-  settlementReference   String   @unique @db.VarChar(50)
-  opportunityId         Int      @unique
-  winningBidId          Int      @unique
-  operatorId            Int
-  retailPriceTotal      Decimal  @db.Decimal(10, 2)
-  winningBidTotal       Decimal  @db.Decimal(10, 2)
-  operatorMarginTotal   Decimal  @db.Decimal(10, 2)
-  platformRevenue       Decimal  @db.Decimal(10, 2)
-  paymentProcessingFee  Decimal  @db.Decimal(10, 2)
-  acquisitionCost       Decimal  @db.Decimal(10, 2)
-  stripeChargeId        String?  @db.VarChar(255)
-  stripePaymentIntentId String?  @db.VarChar(255)
+  settlementReference   String   @unique @map("settlement_reference") @db.VarChar(50)
+  opportunityId         Int      @unique @map("opportunity_id")
+  winningBidId          Int      @unique @map("winning_bid_id")
+  operatorId            Int      @map("operator_id")
+  retailPriceTotal      Decimal  @map("retail_price_total") @db.Decimal(10, 2)
+  winningBidTotal       Decimal  @map("winning_bid_total") @db.Decimal(10, 2)
+  operatorMarginTotal   Decimal  @map("operator_margin_total") @db.Decimal(10, 2)
+  platformRevenue       Decimal  @map("platform_revenue") @db.Decimal(10, 2)
+  paymentProcessingFee  Decimal  @map("payment_processing_fee") @db.Decimal(10, 2)
+  acquisitionCost       Decimal  @map("acquisition_cost") @db.Decimal(10, 2)
+  stripeChargeId        String?  @map("stripe_charge_id") @db.VarChar(255)
+  stripePaymentIntentId String?  @map("stripe_payment_intent_id") @db.VarChar(255)
   status                String   @default("pending") @db.VarChar(50)
-  operatorNotifiedAt    DateTime?
-  chargedAt             DateTime?
-  completedAt           DateTime?
-  adminNotes            String?  @db.Text
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  operatorNotifiedAt    DateTime? @map("operator_notified_at")
+  chargedAt             DateTime? @map("charged_at")
+  completedAt           DateTime? @map("completed_at")
+  adminNotes            String?  @map("admin_notes") @db.Text
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
   opportunity           BookingOpportunity @relation(fields: [opportunityId], references: [id])
   winningBid            OperatorBid        @relation(fields: [winningBidId], references: [id])
   operator              HostAccount        @relation(fields: [operatorId], references: [id])
@@ -502,10 +502,10 @@ model BidSettlement {
 
 model DepositTier {
   id            Int      @id @default(autoincrement())
-  vehicleClass  String   @unique @db.VarChar(50)
-  minAmount     Decimal  @db.Decimal(10, 2)
-  maxAmount     Decimal  @db.Decimal(10, 2)
-  defaultAmount Decimal  @db.Decimal(10, 2)
+  vehicleClass  String   @unique @db.VarChar(50) @map("vehicle_class")
+  minAmount     Decimal  @db.Decimal(10, 2) @map("min_amount")
+  maxAmount     Decimal  @db.Decimal(10, 2) @map("max_amount")
+  defaultAmount Decimal  @db.Decimal(10, 2) @map("default_amount")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   @@map("deposit_tiers")
@@ -513,15 +513,15 @@ model DepositTier {
 
 model DepositRecord {
   id               Int       @id @default(autoincrement())
-  bookingId        Int       @unique
-  operatorId       Int
-  renterId         Int?
-  amountRequired   Decimal   @db.Decimal(10, 2)
-  amountCollected  Decimal?  @db.Decimal(10, 2)
-  collectionMethod String?   @db.VarChar(50)
+  bookingId        Int       @map("booking_id")
+  operatorId       Int       @map("operator_id")
+  renterId         Int?      @map("renter_id")
+  amountRequired   Decimal   @db.Decimal(10, 2) @map("amount_required")
+  amountCollected  Decimal?  @db.Decimal(10, 2) @map("amount_collected")
+  collectionMethod String?   @db.VarChar(50) @map("collection_method")
   status           String    @default("pending") @db.VarChar(50)
-  collectedAt      DateTime?
-  returnedAt       DateTime?
+  collectedAt      DateTime? @map("collected_at")
+  returnedAt       DateTime? @map("returned_at")
   notes            String?   @db.Text
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -532,17 +532,17 @@ model DepositRecord {
 
 model DepositClaim {
   id               Int       @id @default(autoincrement())
-  claimReference   String    @unique @db.VarChar(50)
-  bookingId        Int
-  operatorId       Int
-  claimType        String    @db.VarChar(50)
+  claimReference   String    @unique @db.VarChar(50) @map("claim_reference")
+  bookingId        Int       @map("booking_id")
+  operatorId       Int       @map("operator_id")
+  claimType        String    @db.VarChar(50) @map("claim_type")
   amount           Decimal   @db.Decimal(10, 2)
   description      String    @db.Text
-  evidenceUrls     String?   @db.Text
+  evidenceUrls     String?   @db.Text @map("evidence_urls")
   status           String    @default("filed") @db.VarChar(50)
-  resolutionNotes  String?   @db.Text
-  filedAt          DateTime  @default(now())
-  resolvedAt       DateTime?
+  resolutionNotes  String?   @db.Text @map("resolution_notes")
+  filedAt          DateTime  @default(now()) @map("filed_at")
+  resolvedAt       DateTime? @map("resolved_at")
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   booking          Booking      @relation(fields: [bookingId], references: [id])
@@ -553,13 +553,12 @@ model DepositClaim {
 
 model ClaimMessage {
   id            Int      @id @default(autoincrement())
-  claimId       Int
-  senderId      Int
-  senderRole    String   @db.VarChar(50)
+  claimId       Int      @map("claim_id")
+  senderId      Int      @map("sender_id")
+  senderRole    String   @db.VarChar(50) @map("sender_role")
   message       String   @db.Text
-  attachmentUrl String?  @db.VarChar(500)
-  sentAt        DateTime @default(now())
-  createdAt     DateTime @default(now())
+  attachmentUrl String?  @db.VarChar(500) @map("attachment_url")
+  sentAt        DateTime @default(now()) @map("sent_at")
   claim         DepositClaim @relation(fields: [claimId], references: [id])
   @@map("claim_messages")
 }

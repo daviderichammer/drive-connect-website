@@ -742,7 +742,7 @@ function CheckoutContent() {
   );
 }
 
-export default function CheckoutPage() {
+function CheckoutPageInner() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -751,6 +751,14 @@ export default function CheckoutPage() {
       </div>
     }>
       <CheckoutContent />
+    </Suspense>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <CheckoutPageInner />
     </Suspense>
   );
 }

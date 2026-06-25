@@ -14,7 +14,10 @@ export async function POST(request: NextRequest) {
     const { bookingId, amountCollected, collectionMethod, notes } = body;
 
     if (!bookingId || amountCollected == null || !collectionMethod) {
-      return NextResponse.json({ error: "bookingId, amountCollected, and collectionMethod are required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "bookingId, amountCollected, and collectionMethod are required." },
+        { status: 400 }
+      );
     }
 
     const validMethods = ["cash", "card", "venmo", "zelle", "paypal", "other"];
@@ -30,28 +33,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Booking not found." }, { status: 404 });
     }
 
-    // Upsert deposit record
-    const deposit = await prisma.depositRecord.upsert({
-      where: { bookingId: parseInt(bookingId) },
-      update: {
-        amountCollected: parseFloat(amountCollected),
-        collectionMethod,
-        status: "collected",
-        collectedAt: new Date(),
-        notes: notes || null,
-      },
-      create: {
-        bookingId: parseInt(bookingId),
-        operatorId: host.id,
-        renterId: 0, // renter not linked via FK in this schema
-        amountRequired: parseFloat(amountCollected),
-        amountCollected: parseFloat(amountCollected),
-        collectionMethod,
-        status: "collected",
-        collectedAt: new Date(),
-        notes: notes || null,
-      },
+    // Check if deposit record already exists for this booking
+    const existing = await prisma.depositRecord.findFirst({
+      where: { bookingId: parseInt(bookingId), operatorId: host.id },
     });
+
+    let deposit;
+    if (existing) {
+      deposit = await prisma.depositRecord.update({
+        where: { id: existing.id },
+        data: {
+          amountCollected: parseFloat(amountCollected),
+          collectionMethod,
+          status: "collected",
+          collectedAt: new Date(),
+          notes: notes || null,
+        },
+      });
+    } else {
+      deposit = await prisma.depositRecord.create({
+        data: {
+          bookingId: parseInt(bookingId),
+          operatorId: host.id,
+          amountRequired: parseFloat(amountCollected),
+          amountCollected: parseFloat(amountCollected),
+          collectionMethod,
+          status: "collected",
+          collectedAt: new Date(),
+          notes: notes || null,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

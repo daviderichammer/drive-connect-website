@@ -134,10 +134,18 @@ function ResetPasswordForm() {
   );
 }
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageInner() {
   return (
     <Suspense fallback={<div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center" }}><p style={{ color: "#555555" }}>Loading...</p></div>}>
       <ResetPasswordForm />
+    </Suspense>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <ResetPasswordPageInner />
     </Suspense>
   );
 }

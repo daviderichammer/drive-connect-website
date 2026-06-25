@@ -328,7 +328,7 @@ function MessagesContent() {
   );
 }
 
-export default function RenterMessagesPage() {
+function RenterMessagesPageInner() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: "100vh", backgroundColor: "#000000", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -336,6 +336,14 @@ export default function RenterMessagesPage() {
       </div>
     }>
       <MessagesContent />
+    </Suspense>
+  );
+}
+
+export default function RenterMessagesPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <RenterMessagesPageInner />
     </Suspense>
   );
 }

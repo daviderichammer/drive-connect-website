@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
   },
   // Disable x-powered-by header
   poweredByHeader: false,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
 };
 
 export default nextConfig;

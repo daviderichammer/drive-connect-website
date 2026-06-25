@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -28,7 +28,7 @@ const ACTION_COLORS: Record<string, string> = {
   suspended: "#DC2626",
 };
 
-export default function AdminFraudSignalsPage() {
+function AdminFraudSignalsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [signals, setSignals] = useState<Signal[]>([]);
@@ -276,5 +276,13 @@ export default function AdminFraudSignalsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AdminFraudSignalsPage() {
+  return (
+    <Suspense fallback={<div style={{color:"#888",padding:"40px",textAlign:"center"}}>Loading...</div>}>
+      <AdminFraudSignalsPageInner />
+    </Suspense>
   );
 }

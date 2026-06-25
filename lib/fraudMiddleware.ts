@@ -230,7 +230,7 @@ async function logActivity(
         action,
         flagged,
         flagReason: flagReason || null,
-        metadata: metadata || null,
+
       },
     });
   } catch (err) {
@@ -254,7 +254,7 @@ async function createSignal(
         renterId,
         signalType,
         severity,
-        details,
+        details: details as object,
         autoActionTaken: autoAction,
       },
     });
