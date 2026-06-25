@@ -74,6 +74,8 @@ model HostAccount {
   bookings             Booking[]
   messages             Message[]
   claims               Claim[]
+  operatorBids         OperatorBid[]
+  bidSettlements       BidSettlement[]
 
   @@map("host_accounts")
 }
@@ -274,9 +276,16 @@ model RenterAccount {
   lastLoginAt          DateTime?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
+  // Phase 7F: Trusted Renter fields
+  trustedStatus        String          @default("unverified") @db.VarChar(50) // unverified, pending, trusted, suspended, banned
+  trustedSince         DateTime?
+  trustScore           Int             @default(0)
   sessions             RenterSession[]
   favorites            Favorite[]
   reviews              Review[]
+  activityLogs         RenterActivityLog[]
+  fraudSignals         FraudSignal[]
+
   @@map("renter_accounts")
 }
 
@@ -314,4 +323,175 @@ model Review {
   booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   vehicle   Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   @@map("reviews")
+}
+
+// Phase 7F: Blacklisted Renters
+model BlacklistedRenter {
+  id            Int       @id @default(autoincrement())
+  renterId      Int?
+  email         String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(50)
+  licenseNumber String?   @db.VarChar(100)
+  reason        String    @db.VarChar(50) // fraud, stolen_identity, repeated_claims, chargebacks, banned_by_operator
+  addedBy       Int?
+  addedAt       DateTime  @default(now())
+  expiresAt     DateTime?
+  notes         String?   @db.Text
+  isActive      Boolean   @default(true)
+
+  @@map("blacklisted_renters")
+}
+
+// Phase 7F: IP & Device Activity Logging
+model RenterActivityLog {
+  id              Int           @id @default(autoincrement())
+  renterId        Int?
+  ipAddress       String        @db.VarChar(45)
+  userAgent       String?       @db.Text
+  fingerprintHash String?       @db.VarChar(255)
+  action          String        @db.VarChar(50) // login, booking_attempt, payment_attempt, registration, verification_attempt
+  timestamp       DateTime      @default(now())
+  flagged         Boolean       @default(false)
+  flagReason      String?       @db.VarChar(500)
+  renter          RenterAccount? @relation(fields: [renterId], references: [id], onDelete: SetNull)
+
+  @@map("renter_activity_logs")
+}
+
+// Phase 7F: Fraud Signals
+model FraudSignal {
+  id              Int           @id @default(autoincrement())
+  renterId        Int
+  signalType      String        @db.VarChar(50) // multiple_failed_payments, rapid_bookings, blacklist_match, ip_anomaly, identity_mismatch, suspicious_pattern
+  severity        String        @db.VarChar(20) // low, medium, high, critical
+  details         Json?
+  autoActionTaken String        @default("none") @db.VarChar(20) // none, flagged, blocked, suspended
+  reviewedBy      Int?
+  reviewedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  renter          RenterAccount @relation(fields: [renterId], references: [id], onDelete: Cascade)
+
+  @@map("fraud_signals")
+}
+
+model SippCode {
+  id               Int      @id @default(autoincrement())
+  code             String   @unique @db.VarChar(10)
+  name             String   @db.VarChar(100)
+  description      String?  @db.VarChar(255)
+  category         String   @db.VarChar(50)
+  baseRatePerDay   Decimal  @db.Decimal(10, 2)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  opportunities    BookingOpportunity[]
+  @@map("sipp_codes")
+}
+
+model MarketPricing {
+  id               Int      @id @default(autoincrement())
+  marketName       String   @unique @db.VarChar(100)
+  marketCode       String   @unique @db.VarChar(20)
+  state            String?  @db.VarChar(50)
+  country          String   @default("US") @db.VarChar(50)
+  priceMultiplier  Decimal  @default(1.0000) @db.Decimal(5, 4)
+  acquisitionCost  Decimal  @default(15.00) @db.Decimal(10, 2)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  opportunities    BookingOpportunity[]
+  @@map("market_pricing")
+}
+
+model PricingRule {
+  id             Int      @id @default(autoincrement())
+  ruleName       String   @db.VarChar(100)
+  ruleType       String   @db.VarChar(50)
+  conditionKey   String   @db.VarChar(100)
+  conditionValue String   @db.VarChar(255)
+  multiplier     Decimal  @default(1.0000) @db.Decimal(5, 4)
+  description    String?  @db.VarChar(255)
+  isActive       Boolean  @default(true)
+  priority       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@map("pricing_rules")
+}
+
+model BookingOpportunity {
+  id                   Int      @id @default(autoincrement())
+  opportunityReference String   @unique @db.VarChar(50)
+  sippCodeId           Int
+  marketId             Int
+  pickupLocation       String   @db.VarChar(255)
+  dropoffLocation      String   @db.VarChar(255)
+  pickupDate           DateTime @db.Date
+  dropoffDate          DateTime @db.Date
+  rentalDays           Int
+  renterName           String?  @db.VarChar(255)
+  renterEmail          String?  @db.VarChar(255)
+  retailPricePerDay    Decimal  @db.Decimal(10, 2)
+  retailPriceTotal     Decimal  @db.Decimal(10, 2)
+  minimumBidPerDay     Decimal  @db.Decimal(10, 2)
+  minimumBidTotal      Decimal  @db.Decimal(10, 2)
+  biddingWindowHours   Int      @default(4)
+  biddingClosesAt      DateTime
+  status               String   @default("open") @db.VarChar(50)
+  autoAcceptLowest     Boolean  @default(true)
+  priceBreakdown       String?  @db.Text
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  sippCode             SippCode       @relation(fields: [sippCodeId], references: [id])
+  market               MarketPricing  @relation(fields: [marketId], references: [id])
+  bids                 OperatorBid[]
+  settlement           BidSettlement?
+  @@map("booking_opportunities")
+}
+
+model OperatorBid {
+  id                      Int      @id @default(autoincrement())
+  opportunityId           Int
+  operatorId              Int
+  bidPerDay               Decimal  @db.Decimal(10, 2)
+  bidTotal                Decimal  @db.Decimal(10, 2)
+  estimatedMarginPerDay   Decimal  @db.Decimal(10, 2)
+  estimatedMarginTotal    Decimal  @db.Decimal(10, 2)
+  status                  String   @default("pending") @db.VarChar(50)
+  notes                   String?  @db.Text
+  submittedAt             DateTime @default(now())
+  withdrawnAt             DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  opportunity             BookingOpportunity @relation(fields: [opportunityId], references: [id])
+  operator                HostAccount        @relation(fields: [operatorId], references: [id])
+  settlement              BidSettlement?
+  @@unique([opportunityId, operatorId])
+  @@map("operator_bids")
+}
+
+model BidSettlement {
+  id                    Int      @id @default(autoincrement())
+  settlementReference   String   @unique @db.VarChar(50)
+  opportunityId         Int      @unique
+  winningBidId          Int      @unique
+  operatorId            Int
+  retailPriceTotal      Decimal  @db.Decimal(10, 2)
+  winningBidTotal       Decimal  @db.Decimal(10, 2)
+  operatorMarginTotal   Decimal  @db.Decimal(10, 2)
+  platformRevenue       Decimal  @db.Decimal(10, 2)
+  paymentProcessingFee  Decimal  @db.Decimal(10, 2)
+  acquisitionCost       Decimal  @db.Decimal(10, 2)
+  stripeChargeId        String?  @db.VarChar(255)
+  stripePaymentIntentId String?  @db.VarChar(255)
+  status                String   @default("pending") @db.VarChar(50)
+  operatorNotifiedAt    DateTime?
+  chargedAt             DateTime?
+  completedAt           DateTime?
+  adminNotes            String?  @db.Text
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  opportunity           BookingOpportunity @relation(fields: [opportunityId], references: [id])
+  winningBid            OperatorBid        @relation(fields: [winningBidId], references: [id])
+  operator              HostAccount        @relation(fields: [operatorId], references: [id])
+  @@map("bid_settlements")
 }
