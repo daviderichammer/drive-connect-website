@@ -120,9 +120,9 @@ export async function GET(request: NextRequest) {
       const hostCompletionRate = hostBookings.length > 0 ? completedBookings / hostBookings.length : 0;
       
       const relevanceScore = calculateRelevanceScore({
-        rating: v.rating,
-        trips: v.trips,
-        hostCompletionRate,
+      rating: parseFloat(v.rating.toString()),
+      trips: v.trips,
+      hostCompletionRate,
       });
 
       return {

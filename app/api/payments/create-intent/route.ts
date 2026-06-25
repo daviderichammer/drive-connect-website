@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { calculateFullPricing } from '@/lib/pricing';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
-  apiVersion: '2025-05-28.basil',
+  apiVersion: '2026-06-24.dahlia',
 });
 
 export async function POST(request: NextRequest) {

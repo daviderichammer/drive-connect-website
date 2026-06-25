@@ -66,13 +66,12 @@ export default function InsurancePage() {
               style={{
                 padding: '0.5rem 1.25rem',
                 borderRadius: '6px',
-                border: 'none',
+                border: selectedDays === d ? 'none' : '1px solid #e5e7eb',
                 backgroundColor: selectedDays === d ? '#DC2626' : '#ffffff',
                 color: selectedDays === d ? '#ffffff' : '#333',
                 fontWeight: 700,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
-                border: selectedDays === d ? 'none' : '1px solid #e5e7eb',
               } as React.CSSProperties}
             >
               {d} {d === 1 ? 'day' : 'days'}

@@ -188,7 +188,9 @@ async function getHostPerformance() {
       id: true,
       businessName: true,
       ownerName: true,
-      primaryCity: true,
+      application: {
+        select: { primaryCity: true },
+      },
       vehicles: {
         select: {
           id: true,
@@ -231,7 +233,7 @@ async function getHostPerformance() {
       id: host.id,
       businessName: host.businessName,
       ownerName: host.ownerName,
-      city: host.primaryCity,
+      city: host.application?.primaryCity || null,
       activeVehicles,
       totalBookings,
       completedBookings,
