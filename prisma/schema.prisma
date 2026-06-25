@@ -513,7 +513,7 @@ model DepositTier {
 
 model DepositRecord {
   id               Int       @id @default(autoincrement())
-  bookingId        Int
+  bookingId        Int       @unique
   operatorId       Int
   renterId         Int?
   amountRequired   Decimal   @db.Decimal(10, 2)

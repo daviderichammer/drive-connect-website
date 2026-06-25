@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         claimReference,
         bookingId: parseInt(bookingId),
         operatorId: host.id,
-        renterId: 0,
+
         claimType,
         amount: parseFloat(amount),
         description,
