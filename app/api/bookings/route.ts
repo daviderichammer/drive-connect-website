@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkBookingFraud } from '@/lib/fraudMiddleware';
 
 function generateBookingReference(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -20,7 +21,6 @@ const PROTECTION_PRICES: Record<string, number> = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
     const {
       vehicleId,
       startDate,
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       renterPhone,
       renterLicenseNumber,
       renterLicenseState,
+      renterId,
     } = body;
 
     // Validate required fields
@@ -45,6 +46,43 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Fraud check middleware (if renter ID is known)
+    if (renterId) {
+      const fraudCheck = await checkBookingFraud(request, parseInt(renterId), renterEmail, renterPhone);
+      if (fraudCheck.blocked && fraudCheck.response) {
+        return fraudCheck.response;
+      }
+    } else {
+      // Even without renterId, check blacklist by email/phone
+      const { checkBookingFraud: _, ...fraudLib } = await import('@/lib/fraudMiddleware');
+      // Check blacklist directly for anonymous bookings
+      const blacklisted = await prisma.blacklistedRenter.findFirst({
+        where: {
+          isActive: true,
+          OR: [
+            { email: renterEmail?.toLowerCase() },
+            { phone: renterPhone },
+            { licenseNumber: renterLicenseNumber },
+          ],
+          AND: [
+            {
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (blacklisted) {
+        return NextResponse.json(
+          { success: false, error: 'Booking not allowed. Please contact support.' },
+          { status: 403 }
+        );
+      }
     }
 
     // Fetch vehicle
@@ -83,7 +121,7 @@ export async function POST(request: NextRequest) {
     // Calculate pricing
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     const dailyRate = parseFloat(vehicle.dailyRate.toString());
-    
+
     let basePrice: number;
     if (days >= 28 && vehicle.monthlyRate) {
       const months = Math.floor(days / 28);
@@ -102,7 +140,7 @@ export async function POST(request: NextRequest) {
       ? parseFloat(vehicle.deliveryFee.toString())
       : 0;
     const subtotal = basePrice + protectionPrice + deliveryPrice;
-    const taxes = parseFloat((subtotal * 0.07).toFixed(2)); // 7% tax
+    const taxes = parseFloat((subtotal * 0.07).toFixed(2));
     const totalPrice = parseFloat((subtotal + taxes).toFixed(2));
 
     // Generate unique booking reference

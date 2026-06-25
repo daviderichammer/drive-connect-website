@@ -2,22 +2,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-
 interface RenterDashboardShellProps {
   children: React.ReactNode;
   renterName: string;
   renterEmail: string;
 }
-
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/renter/dashboard", icon: "◈" },
   { label: "My Trips", href: "/renter/dashboard/trips", icon: "◈" },
   { label: "Messages", href: "/renter/dashboard/messages", icon: "◈" },
   { label: "Favorites", href: "/renter/dashboard/favorites", icon: "◈" },
   { label: "Reviews", href: "/renter/dashboard/reviews", icon: "◈" },
+  { label: "Trust Status", href: "/renter/trust", icon: "◈" },
+  { label: "Deposits", href: "/renter/deposits", icon: "◈" },
+  { label: "Claims", href: "/renter/claims", icon: "◈" },
   { label: "Settings", href: "/renter/dashboard/settings", icon: "◈" },
 ];
-
 export default function RenterDashboardShell({
   children,
   renterName,
@@ -26,17 +26,14 @@ export default function RenterDashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const handleLogout = async () => {
     await fetch("/api/renter/logout", { method: "POST" });
     router.push("/renter/login");
   };
-
   const isActive = (href: string) => {
     if (href === "/renter/dashboard") return pathname === href;
     return pathname.startsWith(href);
   };
-
   const sidebar = (
     <aside
       style={{
@@ -61,7 +58,6 @@ export default function RenterDashboardShell({
           Renter Portal
         </p>
       </div>
-
       {/* Nav */}
       <nav style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px" }}>
         {NAV_ITEMS.map((item) => {
@@ -91,7 +87,6 @@ export default function RenterDashboardShell({
           );
         })}
       </nav>
-
       {/* User info */}
       <div style={{ borderTop: "1px solid #111111", paddingTop: "16px", marginTop: "16px" }}>
         <div style={{ padding: "0 4px", marginBottom: "12px" }}>
@@ -125,14 +120,12 @@ export default function RenterDashboardShell({
       </div>
     </aside>
   );
-
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#050505", fontFamily: "Inter, sans-serif" }}>
       {/* Desktop sidebar */}
       <div style={{ display: "none" }} className="desktop-sidebar">
         {sidebar}
       </div>
-
       {/* Mobile header */}
       <div style={{
         position: "fixed",
@@ -158,7 +151,6 @@ export default function RenterDashboardShell({
           {mobileOpen ? "✕" : "☰"}
         </button>
       </div>
-
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -166,7 +158,6 @@ export default function RenterDashboardShell({
           onClick={() => setMobileOpen(false)}
         />
       )}
-
       {/* Mobile sidebar */}
       <div style={{
         position: "fixed",
@@ -178,7 +169,6 @@ export default function RenterDashboardShell({
       }}>
         {sidebar}
       </div>
-
       {/* Main content */}
       <main style={{
         flex: 1,
@@ -189,7 +179,6 @@ export default function RenterDashboardShell({
       }}>
         {children}
       </main>
-
       <style>{`
         @media (min-width: 768px) {
           .desktop-sidebar { display: block !important; }

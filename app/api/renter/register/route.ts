@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createRenterSession, RENTER_SESSION_COOKIE, SESSION_DURATION_DAYS } from "@/lib/auth";
+import { checkRegistrationFraud } from "@/lib/fraudMiddleware";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -13,6 +14,12 @@ export async function POST(req: NextRequest) {
 
     if (password.length < 8) {
       return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
+    }
+
+    // Fraud check: blacklist + IP rate limiting
+    const fraudCheck = await checkRegistrationFraud(req, email, phone);
+    if (fraudCheck.blocked && fraudCheck.response) {
+      return fraudCheck.response;
     }
 
     // Check if email is already taken
@@ -39,6 +46,8 @@ export async function POST(req: NextRequest) {
         phone,
         licenseNumber,
         licenseState,
+        trustedStatus: 'unverified',
+        trustScore: 0,
       },
     });
 

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 import { calculateFullPricing } from '@/lib/pricing';
+import { checkPaymentFraud } from '@/lib/fraudMiddleware';
+import { getCurrentRenter } from '@/lib/auth';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
   apiVersion: '2026-06-24.dahlia',
@@ -33,6 +35,42 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Fraud check: try to get logged-in renter for deeper checks
+    const renter = await getCurrentRenter().catch(() => null);
+    if (renter) {
+      const fraudCheck = await checkPaymentFraud(request, renter.id, renterEmail);
+      if (fraudCheck.blocked && fraudCheck.response) {
+        return fraudCheck.response;
+      }
+    } else {
+      // Anonymous: check blacklist only
+      const blacklisted = await prisma.blacklistedRenter.findFirst({
+        where: {
+          isActive: true,
+          OR: [
+            { email: renterEmail?.toLowerCase() },
+            ...(renterPhone ? [{ phone: renterPhone }] : []),
+            ...(renterLicenseNumber ? [{ licenseNumber: renterLicenseNumber }] : []),
+          ],
+          AND: [
+            {
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } },
+              ],
+            },
+          ],
+        },
+      });
+
+      if (blacklisted) {
+        return NextResponse.json(
+          { success: false, error: 'Payment not allowed. Please contact support.' },
+          { status: 403 }
+        );
+      }
     }
 
     // Fetch vehicle

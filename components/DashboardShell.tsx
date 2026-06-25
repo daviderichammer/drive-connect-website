@@ -18,6 +18,8 @@ const NAV_ITEMS = [
   { label: "Earnings", href: "/host/dashboard/earnings", icon: "▪" },
   { label: "Messages", href: "/host/dashboard/messages", icon: "▪" },
   { label: "Claims", href: "/host/dashboard/claims", icon: "▪" },
+  { label: "Deposits", href: "/operator/deposits", icon: "▪" },
+  { label: "Damage Claims", href: "/operator/claims", icon: "▪" },
   { label: "Settings", href: "/host/dashboard/settings", icon: "▪" },
 ];
 

@@ -76,6 +76,8 @@ model HostAccount {
   claims               Claim[]
   operatorBids         OperatorBid[]
   bidSettlements       BidSettlement[]
+  depositRecords       DepositRecord[]  @relation("OperatorDeposits")
+  depositClaims        DepositClaim[]   @relation("OperatorClaims")
 
   @@map("host_accounts")
 }
@@ -189,6 +191,8 @@ model Booking {
   messages Message[]
   claims   Claim[]
 
+  depositRecords DepositRecord[]
+  depositClaims  DepositClaim[]
   review Review?
   @@map("bookings")
 }
@@ -494,4 +498,68 @@ model BidSettlement {
   winningBid            OperatorBid        @relation(fields: [winningBidId], references: [id])
   operator              HostAccount        @relation(fields: [operatorId], references: [id])
   @@map("bid_settlements")
+}
+
+model DepositTier {
+  id            Int      @id @default(autoincrement())
+  vehicleClass  String   @unique @db.VarChar(50)
+  minAmount     Decimal  @db.Decimal(10, 2)
+  maxAmount     Decimal  @db.Decimal(10, 2)
+  defaultAmount Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@map("deposit_tiers")
+}
+
+model DepositRecord {
+  id               Int       @id @default(autoincrement())
+  bookingId        Int
+  operatorId       Int
+  renterId         Int?
+  amountRequired   Decimal   @db.Decimal(10, 2)
+  amountCollected  Decimal?  @db.Decimal(10, 2)
+  collectionMethod String?   @db.VarChar(50)
+  status           String    @default("pending") @db.VarChar(50)
+  collectedAt      DateTime?
+  returnedAt       DateTime?
+  notes            String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  booking          Booking      @relation(fields: [bookingId], references: [id])
+  operator         HostAccount  @relation("OperatorDeposits", fields: [operatorId], references: [id])
+  @@map("deposit_records")
+}
+
+model DepositClaim {
+  id               Int       @id @default(autoincrement())
+  claimReference   String    @unique @db.VarChar(50)
+  bookingId        Int
+  operatorId       Int
+  claimType        String    @db.VarChar(50)
+  amount           Decimal   @db.Decimal(10, 2)
+  description      String    @db.Text
+  evidenceUrls     String?   @db.Text
+  status           String    @default("filed") @db.VarChar(50)
+  resolutionNotes  String?   @db.Text
+  filedAt          DateTime  @default(now())
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  booking          Booking      @relation(fields: [bookingId], references: [id])
+  operator         HostAccount  @relation("OperatorClaims", fields: [operatorId], references: [id])
+  messages         ClaimMessage[]
+  @@map("deposit_claims")
+}
+
+model ClaimMessage {
+  id            Int      @id @default(autoincrement())
+  claimId       Int
+  senderId      Int
+  senderRole    String   @db.VarChar(50)
+  message       String   @db.Text
+  attachmentUrl String?  @db.VarChar(500)
+  sentAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+  claim         DepositClaim @relation(fields: [claimId], references: [id])
+  @@map("claim_messages")
 }
