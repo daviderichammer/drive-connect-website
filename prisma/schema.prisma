@@ -1,0 +1,47 @@
+// Drive Connect - Prisma Schema
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model PartnerApplication {
+  id                      Int      @id @default(autoincrement())
+  businessName            String   @db.VarChar(255)
+  ownerName               String   @db.VarChar(255)
+  email                   String   @db.VarChar(255)
+  phone                   String   @db.VarChar(50)
+  primaryCity             String   @db.VarChar(255)
+  additionalCities        String?  @db.Text
+  numberOfVehicles        Int
+  vehicleTypes            String   @db.Text
+  currentPlatforms        String   @db.Text
+  turoProfileUrl          String?  @db.VarChar(500)
+  offersAirportDelivery   Boolean  @default(false)
+  offersHomeDelivery      Boolean  @default(false)
+  hasCommercialInsurance  Boolean  @default(false)
+  supportsSameDayBookings Boolean  @default(false)
+  operates24x7            Boolean  @default(false)
+  wouldUseDCSupport       Boolean  @default(false)
+  status                  String   @default("pending") @db.VarChar(50)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@map("partner_applications")
+}
+
+model ContactSubmission {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  email     String   @db.VarChar(255)
+  subject   String   @db.VarChar(255)
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("contact_submissions")
+}

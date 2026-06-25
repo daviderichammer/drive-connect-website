@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: drive-connect-app
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=mysql://drive_connect_user:DriveConnect2024!@host.docker.internal:3306/drive_connect
+      - NEXT_PUBLIC_SITE_URL=http://5.161.189.93
+      - NODE_ENV=production
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - drive-connect-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: drive-connect-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - app
+    networks:
+      - drive-connect-network
+
+networks:
+  drive-connect-network:
+    driver: bridge
