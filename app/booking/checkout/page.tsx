@@ -16,6 +16,7 @@ interface Vehicle {
   rating: number;
   trips: number;
   city: string | null;
+  securityDeposit: number | null;
   host: {
     businessName: string;
     ownerName: string;
