@@ -127,6 +127,8 @@ model Vehicle {
   rating              Decimal     @default(0.0) @db.Decimal(3, 1)
   trips               Int         @default(0)
   unlimitedMiles      Boolean     @default(false)
+  // Phase 6D: AI-generated description flag
+  aiDescriptionGenerated Boolean  @default(false)
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
   host                HostAccount @relation(fields: [hostId], references: [id])
@@ -162,7 +164,18 @@ model Booking {
   taxes               Decimal  @db.Decimal(10, 2)
   totalPrice          Decimal  @db.Decimal(10, 2)
   status              String   @default("pending") @db.VarChar(50) // pending, confirmed, active, completed, cancelled
-  paymentStatus       String   @default("pending") @db.VarChar(50) // pending, paid, refunded
+  paymentStatus       String   @default("pending") @db.VarChar(50) // pending, paid, refunded, failed
+  // Phase 6A: Stripe fields
+  stripePaymentIntentId String? @db.VarChar(255)
+  stripeChargeId        String? @db.VarChar(255)
+  // Phase 6C: Insurance fields
+  insuranceTier         String? @db.VarChar(50) // basic, standard, premium
+  insuranceAmount       Decimal? @db.Decimal(10, 2)
+  // Phase 6E: Dynamic pricing fields
+  pricingMultiplier     Decimal? @db.Decimal(5, 4)
+  earlyBirdDiscount     Decimal? @db.Decimal(10, 2)
+  durationDiscount      Decimal? @db.Decimal(10, 2)
+  priceBreakdown        String?  @db.Text // JSON
   hostPayoutAmount    Decimal? @db.Decimal(10, 2)
   platformFeeAmount   Decimal? @db.Decimal(10, 2)
   payoutStatus        String   @default("pending") @db.VarChar(50) // pending, processing, paid
@@ -249,6 +262,12 @@ model RenterAccount {
   licenseNumber        String?         @db.VarChar(100)
   licenseState         String?         @db.VarChar(50)
   licenseVerified      Boolean         @default(false)
+  // Phase 6B: Identity verification fields
+  licenseImageFront    String?         @db.VarChar(500)
+  licenseImageBack     String?         @db.VarChar(500)
+  verificationStatus   String          @default("unverified") @db.VarChar(50) // unverified, pending, verified, rejected
+  verificationNotes    String?         @db.Text
+  verificationReviewedAt DateTime?
   resetToken           String?         @db.VarChar(255)
   resetTokenExpiry     DateTime?
   isActive             Boolean         @default(true)

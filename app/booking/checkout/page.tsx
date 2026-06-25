@@ -3,6 +3,17 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { loadStripe } from '@stripe/stripe-js';
+import {
+  Elements,
+  PaymentElement,
+  useStripe,
+  useElements,
+} from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder'
+);
 
 interface Vehicle {
   id: number;
@@ -23,6 +34,20 @@ interface Vehicle {
   };
 }
 
+interface PricingBreakdown {
+  days: number;
+  basePrice: number;
+  pricingMultiplier: number;
+  durationDiscount: number;
+  earlyBirdDiscount: number;
+  discountedBase: number;
+  protectionPrice: number;
+  insuranceAmount: number;
+  deliveryPrice: number;
+  taxes: number;
+  totalPrice: number;
+}
+
 const PROTECTION_PLANS: Record<string, { name: string; price: number; description: string; deductible: string }> = {
   none: { name: 'No Protection', price: 0, description: 'You are responsible for all damages.', deductible: 'Full cost' },
   basic: { name: 'Basic Protection', price: 15, description: 'Covers most common damage scenarios.', deductible: '$2,500' },
@@ -30,7 +55,106 @@ const PROTECTION_PLANS: Record<string, { name: string; price: number; descriptio
   premium: { name: 'Premium Protection', price: 49, description: 'Full coverage, zero out-of-pocket risk.', deductible: '$0' },
 };
 
+const INSURANCE_TIERS: Record<string, { name: string; price: number; description: string; coverage: string }> = {
+  basic: { name: 'Basic Insurance', price: 9.99, description: 'Liability coverage up to $50,000.', coverage: '$50K liability' },
+  standard: { name: 'Standard Insurance', price: 14.99, description: 'Comprehensive + collision up to $100,000.', coverage: '$100K comprehensive' },
+  premium: { name: 'Premium Insurance', price: 24.99, description: 'Full coverage including roadside assistance.', coverage: 'Full + roadside' },
+};
+
 const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
+
+// Payment Form Component (uses Stripe hooks - must be inside Elements)
+function PaymentForm({
+  clientSecret,
+  bookingData,
+  pricing,
+  onSuccess,
+  onError,
+}: {
+  clientSecret: string;
+  bookingData: Record<string, unknown>;
+  pricing: PricingBreakdown;
+  onSuccess: (ref: string) => void;
+  onError: (msg: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setProcessing(true);
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      redirect: 'if_required',
+    });
+
+    if (error) {
+      onError(error.message || 'Payment failed. Please try again.');
+      setProcessing(false);
+      return;
+    }
+
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+      // Confirm booking on server
+      try {
+        const res = await fetch('/api/payments/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            paymentIntentId: paymentIntent.id,
+            ...bookingData,
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          onSuccess(data.booking.bookingReference);
+        } else {
+          onError(data.error || 'Booking confirmation failed.');
+        }
+      } catch {
+        onError('Network error during booking confirmation.');
+      }
+    } else {
+      onError('Payment was not completed. Please try again.');
+    }
+    setProcessing(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <PaymentElement options={{ layout: 'tabs' }} />
+      </div>
+      <button
+        type="submit"
+        disabled={!stripe || processing}
+        style={{
+          width: '100%',
+          backgroundColor: processing ? '#888' : '#DC2626',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '1rem',
+          fontWeight: 800,
+          fontSize: '1rem',
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          cursor: processing ? 'not-allowed' : 'pointer',
+          fontFamily: 'Inter, sans-serif',
+        }}
+      >
+        {processing ? 'Processing Payment...' : `Pay $${pricing.totalPrice.toFixed(2)}`}
+      </button>
+      <p style={{ fontSize: '0.75rem', color: '#888', textAlign: 'center', marginTop: '0.75rem' }}>
+        🔒 Secured by Stripe. Your payment info is encrypted.
+      </p>
+    </form>
+  );
+}
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -42,9 +166,7 @@ function CheckoutContent() {
   const pickupTime = searchParams.get('pickupTime') || '10:00';
   const returnTime = searchParams.get('returnTime') || '10:00';
   const deliveryOption = searchParams.get('deliveryOption') || 'pickup';
-  const protectionPlan = searchParams.get('protectionPlan') || 'standard';
-  const totalPrice = parseFloat(searchParams.get('totalPrice') || '0');
-  const days = parseInt(searchParams.get('days') || '0');
+  const protectionPlanParam = searchParams.get('protectionPlan') || 'standard';
 
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -62,11 +184,15 @@ function CheckoutContent() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeAge, setAgreeAge] = useState(false);
 
-  // Payment form state (UI only)
-  const [cardName, setCardName] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [cardExpiry, setCardExpiry] = useState('');
-  const [cardCvv, setCardCvv] = useState('');
+  // Insurance state
+  const [selectedInsurance, setSelectedInsurance] = useState<string>('standard');
+  const [selectedProtection, setSelectedProtection] = useState(protectionPlanParam);
+
+  // Payment state
+  const [clientSecret, setClientSecret] = useState('');
+  const [paymentIntentId, setPaymentIntentId] = useState('');
+  const [pricing, setPricing] = useState<PricingBreakdown | null>(null);
+  const [creatingIntent, setCreatingIntent] = useState(false);
 
   useEffect(() => {
     if (!vehicleId) return;
@@ -86,28 +212,25 @@ function CheckoutContent() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    });
   };
-
-  const plan = PROTECTION_PLANS[protectionPlan] || PROTECTION_PLANS.standard;
-  const basePrice = vehicle ? days * vehicle.dailyRate : 0;
-  const protectionPrice = plan.price * days;
-  const taxes = parseFloat(((basePrice + protectionPrice) * 0.07).toFixed(2));
 
   const validateStep1 = () => {
     return firstName.trim() && lastName.trim() && email.trim() && phone.trim() &&
-           licenseNumber.trim() && licenseState && agreeTerms && agreeAge;
+      licenseNumber.trim() && licenseState && agreeTerms && agreeAge;
   };
 
-  const handleSubmitBooking = async () => {
+  const handleProceedToPayment = async () => {
     if (!validateStep1()) {
       setSubmitError('Please complete all required fields and agree to the terms.');
       return;
     }
-    setSubmitting(true);
+    setCreatingIntent(true);
     setSubmitError('');
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await fetch('/api/payments/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -117,7 +240,8 @@ function CheckoutContent() {
           pickupTime,
           returnTime,
           deliveryOption,
-          protectionPlan,
+          protectionPlan: selectedProtection,
+          insuranceTier: selectedInsurance,
           renterFirstName: firstName,
           renterLastName: lastName,
           renterEmail: email,
@@ -128,14 +252,17 @@ function CheckoutContent() {
       });
       const data = await res.json();
       if (data.success) {
-        router.push(`/booking/confirmation/${data.booking.bookingReference}`);
+        setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentIntentId);
+        setPricing(data.pricing);
+        setStep(3);
       } else {
-        setSubmitError(data.error || 'Failed to create booking. Please try again.');
+        setSubmitError(data.error || 'Failed to initialize payment. Please try again.');
       }
     } catch {
       setSubmitError('Network error. Please try again.');
     } finally {
-      setSubmitting(false);
+      setCreatingIntent(false);
     }
   };
 
@@ -181,6 +308,30 @@ function CheckoutContent() {
     );
   }
 
+  const plan = PROTECTION_PLANS[selectedProtection] || PROTECTION_PLANS.standard;
+  const insurance = INSURANCE_TIERS[selectedInsurance];
+  const days = pricing?.days || Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24));
+  const estimatedBase = days * vehicle.dailyRate;
+  const estimatedProtection = plan.price * days;
+  const estimatedInsurance = insurance ? insurance.price * days : 0;
+  const estimatedSubtotal = estimatedBase + estimatedProtection + estimatedInsurance;
+  const estimatedTax = estimatedSubtotal * 0.07;
+  const estimatedTotal = estimatedSubtotal + estimatedTax;
+
+  const displayPricing = pricing || {
+    days,
+    basePrice: estimatedBase,
+    pricingMultiplier: 1.0,
+    durationDiscount: 0,
+    earlyBirdDiscount: 0,
+    discountedBase: estimatedBase,
+    protectionPrice: estimatedProtection,
+    insuranceAmount: estimatedInsurance,
+    deliveryPrice: 0,
+    taxes: estimatedTax,
+    totalPrice: estimatedTotal,
+  };
+
   return (
     <>
       {/* Header */}
@@ -204,7 +355,7 @@ function CheckoutContent() {
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', gap: '0', alignItems: 'center' }}>
           {[
             { num: 1, label: 'Renter Info' },
-            { num: 2, label: 'Protection' },
+            { num: 2, label: 'Insurance' },
             { num: 3, label: 'Payment' },
           ].map((s, idx) => (
             <div key={s.num} style={{ display: 'flex', alignItems: 'center', flex: idx < 2 ? 1 : 'none' }}>
@@ -273,7 +424,6 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                {/* Agreements */}
                 <div style={{ backgroundColor: '#F5F5F5', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
                   <h3 style={{ fontSize: '0.875rem', fontWeight: 800, color: '#000000', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Required Agreements
@@ -287,130 +437,9 @@ function CheckoutContent() {
                   <label style={{ display: 'flex', gap: '0.75rem', cursor: 'pointer', alignItems: 'flex-start' }}>
                     <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} style={{ accentColor: '#DC2626', width: '16px', height: '16px', marginTop: '2px', flexShrink: 0 }} />
                     <span style={{ fontSize: '0.875rem', color: '#333333', lineHeight: 1.5 }}>
-                      I agree to the Drive Connect <Link href="/protection-plans" style={{ color: '#DC2626', textDecoration: 'none', fontWeight: 600 }}>Rental Terms & Conditions</Link> and understand the protection plan terms.
+                      I agree to the Drive Connect <Link href="/protection-plans" style={{ color: '#DC2626', textDecoration: 'none', fontWeight: 600 }}>Rental Terms & Conditions</Link>.
                     </span>
                   </label>
-                </div>
-
-                {submitError && step === 1 && (
-                  <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.875rem', marginBottom: '1rem', color: '#dc2626', fontSize: '0.875rem' }}>
-                    {submitError}
-                  </div>
-                )}
-
-                <button
-                  onClick={() => { if (validateStep1()) { setStep(2); setSubmitError(''); } else { setSubmitError('Please complete all required fields.'); } }}
-                  style={{ width: '100%', backgroundColor: '#DC2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '1rem', fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-                >
-                  Continue to Protection Plan →
-                </button>
-              </div>
-            )}
-
-            {/* STEP 2: Protection Plan */}
-            {step === 2 && (
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#000000', marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid #000000' }}>
-                  Step 2: Protection Plan
-                </h2>
-
-                <p style={{ fontSize: '0.9375rem', color: '#555555', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                  Your selected protection plan: <strong style={{ color: '#000000' }}>{plan.name}</strong> — {plan.description}
-                  {plan.price > 0 && ` $${plan.price}/day × ${days} days = $${protectionPrice.toFixed(2)}`}
-                </p>
-
-                <div style={{ backgroundColor: '#F5F5F5', borderRadius: '12px', padding: '1.5rem', marginBottom: '1.5rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#000000', marginBottom: '1rem' }}>How Drive Connect Protection Works</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-                    {[
-                      { icon: '🛡️', title: 'Pre-Trip Inspection', desc: 'Document the vehicle condition with photos before pickup.' },
-                      { icon: '📋', title: 'Rental Agreement', desc: 'A digital rental agreement is generated for your trip.' },
-                      { icon: '💰', title: 'Security Deposit', desc: `A $${vehicle.securityDeposit || 500} security deposit is held and released after return.` },
-                      { icon: '📞', title: '24/7 Support', desc: 'Our team is available around the clock for any issues.' },
-                    ].map(item => (
-                      <div key={item.title} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                        <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{item.icon}</span>
-                        <div>
-                          <p style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#000000', marginBottom: '0.125rem' }}>{item.title}</p>
-                          <p style={{ fontSize: '0.875rem', color: '#555555' }}>{item.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ backgroundColor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '8px', padding: '1rem', marginBottom: '1.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: '#92400e', lineHeight: 1.6 }}>
-                    <strong>Your Deductible:</strong> {plan.deductible} — {plan.description}
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button
-                    onClick={() => setStep(1)}
-                    style={{ flex: 1, backgroundColor: '#ffffff', color: '#000000', border: '2px solid #000000', borderRadius: '8px', padding: '1rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    onClick={() => setStep(3)}
-                    style={{ flex: 2, backgroundColor: '#DC2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '1rem', fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
-                  >
-                    Continue to Payment →
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 3: Payment */}
-            {step === 3 && (
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#000000', marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid #000000' }}>
-                  Step 3: Payment Information
-                </h2>
-
-                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '1rem', marginBottom: '1.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: '#166534', lineHeight: 1.6 }}>
-                    <strong>🔒 Secure Payment</strong> — Your payment information is encrypted and secure. Payment processing will be enabled in a future update.
-                  </p>
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={labelStyle}>Name on Card</label>
-                  <input type="text" value={cardName} onChange={e => setCardName(e.target.value)} placeholder="John Smith" style={inputStyle} />
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={labelStyle}>Card Number</label>
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={e => setCardNumber(e.target.value.replace(/\D/g, '').replace(/(\d{4})/g, '$1 ').trim().slice(0, 19))}
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                    style={inputStyle}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div>
-                    <label style={labelStyle}>Expiration Date</label>
-                    <input
-                      type="text"
-                      value={cardExpiry}
-                      onChange={e => {
-                        const v = e.target.value.replace(/\D/g, '');
-                        setCardExpiry(v.length >= 2 ? v.slice(0, 2) + '/' + v.slice(2, 4) : v);
-                      }}
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      style={inputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>CVV</label>
-                    <input type="text" value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="123" maxLength={4} style={inputStyle} />
-                  </div>
                 </div>
 
                 {submitError && (
@@ -419,96 +448,292 @@ function CheckoutContent() {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={() => {
+                    if (validateStep1()) { setStep(2); setSubmitError(''); }
+                    else { setSubmitError('Please complete all required fields.'); }
+                  }}
+                  style={{ width: '100%', backgroundColor: '#DC2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '1rem', fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                >
+                  Continue to Insurance →
+                </button>
+              </div>
+            )}
+
+            {/* STEP 2: Insurance Selection */}
+            {step === 2 && (
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#000000', marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid #000000' }}>
+                  Step 2: Insurance & Protection
+                </h2>
+
+                {/* Protection Plan */}
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#333' }}>Protection Plan</h3>
+                <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                  {Object.entries(PROTECTION_PLANS).map(([key, p]) => (
+                    <label key={key} style={{
+                      display: 'flex', alignItems: 'flex-start', gap: '1rem',
+                      padding: '1rem', border: `2px solid ${selectedProtection === key ? '#DC2626' : '#e5e7eb'}`,
+                      borderRadius: '8px', cursor: 'pointer', backgroundColor: selectedProtection === key ? '#fff5f5' : '#fff',
+                    }}>
+                      <input type="radio" name="protection" value={key} checked={selectedProtection === key}
+                        onChange={() => setSelectedProtection(key)}
+                        style={{ accentColor: '#DC2626', marginTop: '2px', flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.9375rem' }}>{p.name}</span>
+                          <span style={{ fontWeight: 800, color: '#DC2626' }}>
+                            {p.price === 0 ? 'Free' : `$${p.price}/day`}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.8125rem', color: '#666', margin: '0.25rem 0 0' }}>{p.description} Deductible: {p.deductible}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Insurance Tier */}
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#333' }}>Insurance Coverage</h3>
+                <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                  {Object.entries(INSURANCE_TIERS).map(([key, ins]) => (
+                    <label key={key} style={{
+                      display: 'flex', alignItems: 'flex-start', gap: '1rem',
+                      padding: '1rem', border: `2px solid ${selectedInsurance === key ? '#DC2626' : '#e5e7eb'}`,
+                      borderRadius: '8px', cursor: 'pointer', backgroundColor: selectedInsurance === key ? '#fff5f5' : '#fff',
+                    }}>
+                      <input type="radio" name="insurance" value={key} checked={selectedInsurance === key}
+                        onChange={() => setSelectedInsurance(key)}
+                        style={{ accentColor: '#DC2626', marginTop: '2px', flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.9375rem' }}>{ins.name}</span>
+                          <span style={{ fontWeight: 800, color: '#DC2626' }}>${ins.price}/day</span>
+                        </div>
+                        <p style={{ fontSize: '0.8125rem', color: '#666', margin: '0.25rem 0 0' }}>
+                          {ins.description} <strong>{ins.coverage}</strong>
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
                   <button
-                    onClick={() => setStep(2)}
-                    style={{ flex: 1, backgroundColor: '#ffffff', color: '#000000', border: '2px solid #000000', borderRadius: '8px', padding: '1rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                    onClick={() => setStep(1)}
+                    style={{ flex: 1, backgroundColor: '#fff', color: '#000', border: '2px solid #000', borderRadius: '8px', padding: '1rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
                   >
                     ← Back
                   </button>
                   <button
-                    onClick={handleSubmitBooking}
-                    disabled={submitting}
-                    style={{ flex: 2, backgroundColor: submitting ? '#888888' : '#DC2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '1rem', fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif' }}
+                    onClick={handleProceedToPayment}
+                    disabled={creatingIntent}
+                    style={{ flex: 2, backgroundColor: creatingIntent ? '#888' : '#DC2626', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '1rem', fontWeight: 800, fontSize: '1rem', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: creatingIntent ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif' }}
                   >
-                    {submitting ? 'Processing...' : `Confirm Booking — $${totalPrice.toFixed(2)}`}
+                    {creatingIntent ? 'Preparing Payment...' : 'Continue to Payment →'}
                   </button>
                 </div>
+
+                {submitError && (
+                  <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.875rem', marginTop: '1rem', color: '#dc2626', fontSize: '0.875rem' }}>
+                    {submitError}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 3: Payment */}
+            {step === 3 && clientSecret && (
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#000000', marginBottom: '1.5rem', paddingBottom: '0.75rem', borderBottom: '2px solid #000000' }}>
+                  Step 3: Secure Payment
+                </h2>
+
+                {/* Price Breakdown */}
+                {pricing && (
+                  <div style={{ backgroundColor: '#F5F5F5', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Price Breakdown</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>${vehicle.dailyRate}/day × {pricing.days} days</span>
+                        <span>${pricing.basePrice.toFixed(2)}</span>
+                      </div>
+                      {pricing.pricingMultiplier > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#DC2626' }}>
+                          <span>Peak season/weekend multiplier ({((pricing.pricingMultiplier - 1) * 100).toFixed(0)}%)</span>
+                          <span>+${((pricing.basePrice / pricing.pricingMultiplier) * (pricing.pricingMultiplier - 1)).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {pricing.durationDiscount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                          <span>Duration discount ({pricing.days >= 28 ? '20%' : '10%'})</span>
+                          <span>-${pricing.durationDiscount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {pricing.earlyBirdDiscount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                          <span>Early bird discount (5%)</span>
+                          <span>-${pricing.earlyBirdDiscount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {pricing.protectionPrice > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Protection: {PROTECTION_PLANS[selectedProtection]?.name}</span>
+                          <span>${pricing.protectionPrice.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {pricing.insuranceAmount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Insurance: {INSURANCE_TIERS[selectedInsurance]?.name}</span>
+                          <span>${pricing.insuranceAmount.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {pricing.deliveryPrice > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Delivery fee</span>
+                          <span>${pricing.deliveryPrice.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Taxes & fees (7%)</span>
+                        <span>${pricing.taxes.toFixed(2)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '1rem', borderTop: '1px solid #ddd', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                        <span>Total</span>
+                        <span style={{ color: '#DC2626' }}>${pricing.totalPrice.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {submitError && (
+                  <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.875rem', marginBottom: '1rem', color: '#dc2626', fontSize: '0.875rem' }}>
+                    {submitError}
+                  </div>
+                )}
+
+                <Elements
+                  stripe={stripePromise}
+                  options={{
+                    clientSecret,
+                    appearance: {
+                      theme: 'stripe',
+                      variables: {
+                        colorPrimary: '#DC2626',
+                        colorBackground: '#ffffff',
+                        fontFamily: 'Inter, sans-serif',
+                      },
+                    },
+                  }}
+                >
+                  <PaymentForm
+                    clientSecret={clientSecret}
+                    bookingData={{
+                      vehicleId: parseInt(vehicleId),
+                      startDate,
+                      endDate,
+                      pickupTime,
+                      returnTime,
+                      deliveryOption,
+                      protectionPlan: selectedProtection,
+                      insuranceTier: selectedInsurance,
+                      renterFirstName: firstName,
+                      renterLastName: lastName,
+                      renterEmail: email,
+                      renterPhone: phone,
+                      renterLicenseNumber: licenseNumber,
+                      renterLicenseState: licenseState,
+                    }}
+                    pricing={pricing || displayPricing}
+                    onSuccess={(ref) => router.push(`/booking/confirmation/${ref}`)}
+                    onError={(msg) => setSubmitError(msg)}
+                  />
+                </Elements>
+
+                <button
+                  onClick={() => setStep(2)}
+                  style={{ width: '100%', marginTop: '1rem', backgroundColor: '#fff', color: '#000', border: '2px solid #e5e7eb', borderRadius: '8px', padding: '0.75rem', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                >
+                  ← Back to Insurance
+                </button>
               </div>
             )}
           </div>
 
-          {/* RIGHT — Trip Summary */}
-          <div style={{ position: 'sticky', top: '80px' }}>
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '16px', padding: '1.5rem', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#000000', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Trip Summary
-              </h3>
+          {/* RIGHT — Booking Summary */}
+          <div style={{ position: 'sticky', top: '1.5rem' }}>
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
+              {/* Vehicle Image */}
+              {vehicle.photos && vehicle.photos.length > 0 ? (
+                <img src={vehicle.photos[0]} alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                  style={{ width: '100%', height: '180px', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '180px', backgroundColor: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '3rem' }}>🚗</span>
+                </div>
+              )}
 
-              {/* Vehicle */}
-              <div style={{ display: 'flex', gap: '0.875rem', marginBottom: '1.25rem', paddingBottom: '1.25rem', borderBottom: '1px solid #e5e7eb' }}>
-                <div style={{ width: '80px', height: '60px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#e5e7eb', flexShrink: 0 }}>
-                  {vehicle.photos && vehicle.photos.length > 0 ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={vehicle.photos[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🚗</div>
+              <div style={{ padding: '1.25rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 800, marginBottom: '0.25rem' }}>
+                  {vehicle.year} {vehicle.make} {vehicle.model}
+                  {vehicle.trim && ` ${vehicle.trim}`}
+                </h3>
+                <p style={{ fontSize: '0.8125rem', color: '#666', marginBottom: '1rem' }}>
+                  Hosted by {vehicle.host.businessName}
+                </p>
+
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                    <span style={{ color: '#666' }}>Pickup</span>
+                    <span style={{ fontWeight: 600 }}>{formatDate(startDate)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                    <span style={{ color: '#666' }}>Return</span>
+                    <span style={{ fontWeight: 600 }}>{formatDate(endDate)}</span>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem' }}>
+                    <span style={{ color: '#666' }}>${vehicle.dailyRate}/day × {displayPricing.days} days</span>
+                    <span>${displayPricing.basePrice.toFixed(2)}</span>
+                  </div>
+                  {displayPricing.durationDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem', color: '#16a34a' }}>
+                      <span>Duration discount</span>
+                      <span>-${displayPricing.durationDiscount.toFixed(2)}</span>
+                    </div>
                   )}
-                </div>
-                <div>
-                  <p style={{ fontSize: '0.9375rem', fontWeight: 800, color: '#000000', marginBottom: '0.125rem' }}>
-                    {vehicle.year} {vehicle.make} {vehicle.model}
-                  </p>
-                  <p style={{ fontSize: '0.8125rem', color: '#666666' }}>{vehicle.category}</p>
-                  <p style={{ fontSize: '0.8125rem', color: '#888888' }}>by {vehicle.host.businessName}</p>
+                  {displayPricing.earlyBirdDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem', color: '#16a34a' }}>
+                      <span>Early bird (5%)</span>
+                      <span>-${displayPricing.earlyBirdDiscount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem' }}>
+                    <span style={{ color: '#666' }}>Protection</span>
+                    <span>${displayPricing.protectionPrice.toFixed(2)}</span>
+                  </div>
+                  {displayPricing.insuranceAmount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem', fontSize: '0.875rem' }}>
+                      <span style={{ color: '#666' }}>Insurance</span>
+                      <span>${displayPricing.insuranceAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.875rem' }}>
+                    <span style={{ color: '#666' }}>Taxes (7%)</span>
+                    <span>${displayPricing.taxes.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '1.125rem', borderTop: '2px solid #000', paddingTop: '0.75rem' }}>
+                    <span>Total</span>
+                    <span style={{ color: '#DC2626' }}>${displayPricing.totalPrice.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Dates */}
-              <div style={{ marginBottom: '1.25rem', paddingBottom: '1.25rem', borderBottom: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <div>
-                    <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#888888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.125rem' }}>Pickup</p>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#000000' }}>{formatDate(startDate)}</p>
-                    <p style={{ fontSize: '0.8125rem', color: '#666666' }}>{pickupTime}</p>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: '#888888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.125rem' }}>Return</p>
-                    <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#000000' }}>{formatDate(endDate)}</p>
-                    <p style={{ fontSize: '0.8125rem', color: '#666666' }}>{returnTime}</p>
-                  </div>
-                </div>
-                <div style={{ backgroundColor: '#F5F5F5', borderRadius: '6px', padding: '0.5rem 0.75rem', textAlign: 'center' }}>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#000000' }}>{days} day{days !== 1 ? 's' : ''}</span>
-                  <span style={{ fontSize: '0.8125rem', color: '#666666' }}> · {deliveryOption === 'pickup' ? 'Self Pickup' : deliveryOption === 'airport' ? 'Airport Delivery' : 'Home Delivery'}</span>
-                </div>
-              </div>
-
-              {/* Price breakdown */}
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-                  <span style={{ fontSize: '0.875rem', color: '#555555' }}>${vehicle.dailyRate} × {days} days</span>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>${basePrice.toFixed(2)}</span>
-                </div>
-                {protectionPrice > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-                    <span style={{ fontSize: '0.875rem', color: '#555555' }}>{plan.name}</span>
-                    <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>${protectionPrice.toFixed(2)}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
-                  <span style={{ fontSize: '0.875rem', color: '#555555' }}>Taxes (7%)</span>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>${taxes.toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: '2px solid #000000', marginTop: '0.5rem' }}>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#000000' }}>Total</span>
-                  <span style={{ fontSize: '1.125rem', fontWeight: 900, color: '#DC2626' }}>${totalPrice.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <p style={{ fontSize: '0.75rem', color: '#888888', textAlign: 'center', lineHeight: 1.5 }}>
-                🔒 Secure checkout. No charges until confirmed.
-              </p>
+            {/* Test Mode Notice */}
+            <div style={{ marginTop: '1rem', padding: '0.875rem', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', fontSize: '0.8125rem', color: '#92400e' }}>
+              <strong>Test Mode:</strong> Use card 4242 4242 4242 4242, any future date, any CVV.
             </div>
           </div>
         </div>
@@ -521,10 +746,8 @@ export default function CheckoutPage() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '48px', height: '48px', border: '4px solid #e5e7eb', borderTopColor: '#DC2626', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem' }} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <div style={{ width: '48px', height: '48px', border: '4px solid #e5e7eb', borderTopColor: '#DC2626', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     }>
       <CheckoutContent />
