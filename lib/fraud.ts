@@ -72,12 +72,14 @@ export async function checkBlacklist(params: {
 
   const entry = await prisma.blacklistedRenter.findFirst({
     where: {
-      OR: conditions,
       isActive: true,
-      OR: [
-        { expiresAt: null },
-        { expiresAt: { gt: new Date() } },
-      ],
+      OR: conditions,
+      AND: {
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } },
+        ],
+      },
     },
   });
 
@@ -194,7 +196,7 @@ export async function createFraudSignal(params: {
       renterId: params.renterId,
       signalType: params.signalType,
       severity: params.severity,
-      details: params.details,
+      details: params.details as object,
       autoActionTaken: params.autoActionTaken || 'none',
     },
   });
