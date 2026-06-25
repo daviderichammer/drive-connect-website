@@ -409,16 +409,16 @@ model MarketPricing {
 
 model PricingRule {
   id             Int      @id @default(autoincrement())
-  ruleName       String   @db.VarChar(100)
-  ruleType       String   @db.VarChar(50)
-  conditionKey   String   @db.VarChar(100)
-  conditionValue String   @db.VarChar(255)
+  ruleName       String   @map("rule_name") @db.VarChar(100)
+  ruleType       String   @map("rule_type") @db.VarChar(50)
+  conditionKey   String   @map("condition_key") @db.VarChar(100)
+  conditionValue String   @map("condition_value") @db.VarChar(255)
   multiplier     Decimal  @default(1.0000) @db.Decimal(5, 4)
   description    String?  @db.VarChar(255)
-  isActive       Boolean  @default(true)
+  isActive       Boolean  @default(true) @map("is_active")
   priority       Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
   @@map("pricing_rules")
 }
 
