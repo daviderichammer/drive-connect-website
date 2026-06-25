@@ -113,10 +113,10 @@ export default function FindACarPage() {
       <section style={{ backgroundColor: '#000000', padding: '3rem 1.5rem', color: '#ffffff' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
           <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>
-            Find The Right Car At The Right Price.
+            Enter The Network.
           </h1>
           <p style={{ color: '#aaaaaa', fontSize: '1.0625rem' }}>
-            Lower prices. Better vehicles. Simple rental process.
+            Verified operators. Transparent pricing. Direct relationships. The market as it should function.
           </p>
         </div>
       </section>

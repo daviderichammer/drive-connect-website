@@ -60,8 +60,8 @@ export default function WhyWeExistPage() {
               marginBottom: "1.5rem",
             }}
           >
-            Why Drive Connect{" "}
-            <span style={{ color: "#DC2626" }}>Exists</span>
+            The Doctrine{" "}
+            <span style={{ color: "#DC2626" }}>Behind Drive Connect.</span>
           </h1>
           <p
             style={{
@@ -72,7 +72,7 @@ export default function WhyWeExistPage() {
               margin: "0 auto",
             }}
           >
-            This is not marketing. This is company doctrine.
+            Drive Connect was not built to compete. It was built to correct. This is the structural reasoning behind every decision we make.
           </p>
         </div>
       </section>
@@ -89,7 +89,7 @@ export default function WhyWeExistPage() {
               marginBottom: "2rem",
             }}
           >
-            The car rental industry created unnecessary conflict.
+            The Car Rental Industry Has A Structural Problem.
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {[
@@ -135,8 +135,8 @@ export default function WhyWeExistPage() {
               marginBottom: "2rem",
             }}
           >
-            We believed there was a better way.{" "}
-            <span style={{ color: "#DC2626" }}>So we built one.</span>
+              The System Required Rebuilding.{" "}
+            <span style={{ color: "#DC2626" }}>So We Rebuilt It.</span>
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "2.5rem" }}>
             {[
@@ -347,7 +347,7 @@ export default function WhyWeExistPage() {
                 border: "2px solid rgba(255,255,255,0.5)",
               }}
             >
-              Become A Partner
+              JOIN AS AN OPERATOR
             </Link>
           </div>
         </div>

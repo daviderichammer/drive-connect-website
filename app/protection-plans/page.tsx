@@ -136,8 +136,8 @@ export default function ProtectionPlansPage() {
               lineHeight: 1.05,
             }}
           >
-            Protection Built{" "}
-            <span style={{ color: "#DC2626" }}>For Everyone.</span>
+            Trust Infrastructure.{" "}
+            <span style={{ color: "#DC2626" }}>Engineered For Every Participant.</span>
           </h1>
           <p
             style={{
@@ -148,7 +148,7 @@ export default function ProtectionPlansPage() {
               margin: "0 auto",
             }}
           >
-            Drive Connect protects both sides equally. Renters deserve confidence. Operators deserve protection. Trust creates better transactions.
+            Trust is not assumed in a marketplace. It is engineered. Drive Connect’s trust infrastructure creates verified, accountable transactions for every participant.
           </p>
         </div>
       </section>
@@ -165,7 +165,7 @@ export default function ProtectionPlansPage() {
               margin: 0,
             }}
           >
-            Drive Connect protects both sides equally. Renters deserve confidence. Operators deserve protection. Trust creates better transactions.
+            Trust infrastructure is not a feature. It is the foundation. Without verified identity, transparent accountability, and structured protection, there is no market — only risk.
           </p>
         </div>
       </section>

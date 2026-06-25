@@ -162,8 +162,8 @@ export default function SupportPage() {
               lineHeight: 1.05,
             }}
           >
-            Support When{" "}
-            <span style={{ color: "#DC2626" }}>You Need It.</span>
+            Infrastructure Support.{" "}
+            <span style={{ color: "#DC2626" }}>For Every Participant.</span>
           </h1>
           <p
             style={{
@@ -174,7 +174,7 @@ export default function SupportPage() {
               margin: "0 auto",
             }}
           >
-            We are here to help renters and operators alike. Find answers below or contact our team directly.
+            Drive Connect supports every participant in the network. Operators and renters receive direct access to the team that built the system. Find answers below or contact us directly.
           </p>
         </div>
       </section>

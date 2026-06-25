@@ -107,7 +107,9 @@ export default function BecomeAPartnerPage() {
               marginBottom: "1.25rem",
             }}
           >
-            Become A Drive Network Partner.
+            Join The Network.
+            <br />
+            <span style={{ color: "#DC2626" }}>Build A Real Business.</span>
           </h1>
           <p
             style={{
@@ -118,7 +120,7 @@ export default function BecomeAPartnerPage() {
               marginBottom: "1.5rem",
             }}
           >
-            Earn More. Stay Independent. Build Your Own Rental Business.
+            Independent Operators. Aligned Incentives. Economic Infrastructure That Works For You.
           </p>
           <p
             style={{
@@ -299,7 +301,7 @@ export default function BecomeAPartnerPage() {
               marginBottom: "3rem",
             }}
           >
-            Drive Connect vs. Traditional Platforms
+            Two Market Architectures. One Clear Difference.
           </h2>
           <div style={{ borderRadius: "12px", overflow: "hidden", border: "1px solid #1a1a1a" }}>
             <div
@@ -356,7 +358,9 @@ export default function BecomeAPartnerPage() {
               marginBottom: "1rem",
             }}
           >
-            Ready To Build Your Rental Business?
+            The Infrastructure Is Ready.
+            <br />
+            <span style={{ fontSize: "clamp(1.25rem, 3vw, 1.75rem)", fontWeight: 700 }}>Are You?</span>
           </h2>
           <p
             style={{
@@ -366,7 +370,7 @@ export default function BecomeAPartnerPage() {
               marginBottom: "2.5rem",
             }}
           >
-            Join the Drive Network. Earn more. Stay independent. Build something real.
+            Drive Connect provides the trust infrastructure, the auction engine, and the economic architecture. You bring the fleet and the ambition. The network does the rest.
           </p>
           <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
             <Link

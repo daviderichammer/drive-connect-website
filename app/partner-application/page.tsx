@@ -186,10 +186,10 @@ export default function PartnerApplicationPage() {
               lineHeight: 1.1,
             }}
           >
-            Apply To Become A Drive Network Partner
+            Join The Drive Network
           </h1>
           <p style={{ color: "#888888", fontSize: "1rem", lineHeight: 1.7 }}>
-            Join a trusted network built for independent operators.
+            Drive Connect is economic infrastructure for independent operators. This application begins the process of joining a network built on aligned incentives, transparent economics, and genuine operator independence.
           </p>
         </div>
       </section>
