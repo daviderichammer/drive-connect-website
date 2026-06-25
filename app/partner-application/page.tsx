@@ -422,7 +422,7 @@ export default function PartnerApplicationPage() {
                 </div>
               </div>
 
-              {/* Turo Profile URL - shown when Turo is selected */}
+              {/* Platform Profile URL - shown when Turo is selected */}
               {formData.currentPlatforms.includes("Turo") && (
                 <div
                   style={{
@@ -434,10 +434,10 @@ export default function PartnerApplicationPage() {
                   }}
                 >
                   <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, color: "#DC2626", marginBottom: "0.375rem", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                    Turo Host Profile URL
+                    Current Platform Profile URL
                   </label>
                   <p style={{ fontSize: "0.8125rem", color: "#666666", marginBottom: "0.625rem" }}>
-                    Please provide your Turo host profile URL for review. We will review your ratings, total trips, and guest reviews.
+                    Please provide your current platform host profile URL for review. We will review your ratings, total trips, and guest reviews.
                   </p>
                   <input
                     type="url"

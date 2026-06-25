@@ -94,8 +94,8 @@ export default function HowItWorksPage() {
               lineHeight: 1.05,
             }}
           >
-            Simple Car Rental.{" "}
-            <span style={{ color: "#DC2626" }}>Better Experience.</span>
+            How The System{" "}
+            <span style={{ color: "#DC2626" }}>Functions.</span>
           </h1>
           <p
             style={{
@@ -106,7 +106,7 @@ export default function HowItWorksPage() {
               margin: "0 auto",
             }}
           >
-            We removed the complexity, the counters, and the conflict. Here is how Drive Connect works — for renters and operators alike.
+            Drive Connect is not a rental company. It is trust infrastructure. Here is how the system functions — for renters and operators alike.
           </p>
         </div>
       </section>
@@ -258,7 +258,7 @@ export default function HowItWorksPage() {
                 borderRadius: "6px",
               }}
             >
-              Find A Car
+              ENTER THE NETWORK
             </Link>
           </div>
         </div>
@@ -267,7 +267,7 @@ export default function HowItWorksPage() {
       {/* DIVIDER */}
       <div style={{ backgroundColor: "#DC2626", padding: "1.25rem 1.5rem", textAlign: "center" }}>
         <p style={{ color: "#ffffff", fontWeight: 700, fontSize: "0.8125rem", letterSpacing: "0.15em", textTransform: "uppercase", margin: 0 }}>
-          Simple systems create better customer experiences.
+          Aligned incentives create better markets. Better markets create better experiences.
         </p>
       </div>
 
@@ -366,7 +366,7 @@ export default function HowItWorksPage() {
                 borderRadius: "6px",
               }}
             >
-              Apply To Become A Partner
+              JOIN AS AN OPERATOR
             </Link>
           </div>
         </div>

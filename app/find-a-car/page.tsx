@@ -394,7 +394,7 @@ export default function FindACarPage() {
                           href={`/vehicles/${vehicle.id}${startDate ? `?startDate=${startDate}&endDate=${endDate}` : ''}#book`}
                           style={{ backgroundColor: '#000000', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '0.75rem 1.25rem', fontWeight: 700, fontSize: '0.875rem', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'Inter, sans-serif', textDecoration: 'none', textAlign: 'center', display: 'block' }}
                         >
-                          Book Now
+                          RESERVE DIRECTLY
                         </Link>
                       </div>
                     </div>

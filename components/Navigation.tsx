@@ -6,10 +6,10 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  { href: "/find-a-car", label: "Find A Car" },
-  { href: "/become-a-partner", label: "Become A Drive Network Partner" },
-  { href: "/how-it-works", label: "How It Works" },
-  { href: "/protection-plans", label: "Protection Plans" },
+  { href: "/find-a-car", label: "Enter The Network" },
+  { href: "/become-a-partner", label: "Join As Operator" },
+  { href: "/market-principle", label: "The Market Principle" },
+  { href: "/protection-plans", label: "Trust Infrastructure" },
   { href: "/why-we-exist", label: "Why We Exist" },
   { href: "/support", label: "Support" },
 ];

@@ -25,7 +25,7 @@ export default function Footer() {
             margin: 0,
           }}
         >
-          DRIVE CONNECT IS PRINCIPLED &nbsp;—&nbsp; Fairness * Integrity * Trust * Independence * Accountability * Shared Success
+          DRIVE CONNECT — Economic Fairness Doctrine &nbsp;·&nbsp; Trust Infrastructure &nbsp;·&nbsp; Aligned Incentives &nbsp;·&nbsp; Shared Success
         </p>
       </div>
 
@@ -78,7 +78,7 @@ export default function Footer() {
                 maxWidth: "240px",
               }}
             >
-              Built For Operators. Designed For Travelers. Trusted infrastructure where everyone succeeds together.
+              Economic fairness doctrine applied to car rental. Trust infrastructure where every participant succeeds.
             </p>
           </div>
 
@@ -98,9 +98,9 @@ export default function Footer() {
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[
-                { href: "/find-a-car", label: "Find A Car" },
-                { href: "/how-it-works", label: "How It Works" },
-                { href: "/protection-plans", label: "Protection Plans" },
+                { href: "/find-a-car", label: "Enter The Network" },
+                { href: "/market-principle", label: "The Market Principle" },
+                { href: "/protection-plans", label: "Trust Infrastructure" },
                 { href: "/support", label: "Support" },
               ].map((link) => (
                 <li key={link.href} style={{ marginBottom: "0.625rem" }}>
@@ -142,9 +142,9 @@ export default function Footer() {
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[
-                { href: "/become-a-partner", label: "Become A Partner" },
-                { href: "/partner-application", label: "Apply Now" },
-                { href: "/host-login", label: "Host Login" },
+                { href: "/become-a-partner", label: "Join The Network" },
+                { href: "/partner-application", label: "Join As An Operator" },
+                { href: "/host-login", label: "Operator Login" },
                 { href: "/support", label: "Operator Support" },
               ].map((link) => (
                 <li key={link.href} style={{ marginBottom: "0.625rem" }}>
@@ -187,7 +187,9 @@ export default function Footer() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[
                 { href: "/why-we-exist", label: "Why We Exist" },
-                { href: "/why-we-exist#philosophy", label: "The Drive Philosophy" },
+                { href: "/why-we-built-this", label: "Why We Built This" },
+                { href: "/market-principle", label: "The Market Principle" },
+                { href: "/vision", label: "Our Vision" },
                 { href: "/support", label: "Contact Us" },
               ].map((link) => (
                 <li key={link.href} style={{ marginBottom: "0.625rem" }}>

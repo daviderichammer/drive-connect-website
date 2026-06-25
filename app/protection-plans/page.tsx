@@ -445,7 +445,7 @@ export default function ProtectionPlansPage() {
                 borderRadius: "6px",
               }}
             >
-              Find A Car
+              ENTER THE NETWORK
             </Link>
             <Link
               href="/support"

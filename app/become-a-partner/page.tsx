@@ -7,8 +7,8 @@ const benefits = [
     icon: "📈",
   },
   {
-    title: "Private Bookings",
-    description: "Direct relationships with verified renters. No unnecessary platform interference.",
+    title: "Direct Customer Relationships",
+    description: "Direct relationships with verified renters. Trust infrastructure that creates genuine connection.",
     icon: "🤝",
   },
   {
@@ -22,14 +22,14 @@ const benefits = [
     icon: "🏢",
   },
   {
-    title: "No Airport Restrictions",
+    title: "Flexible Market Participation",
     description: "Operate where your business demands. No artificial geographic limitations.",
     icon: "✈️",
   },
   {
-    title: "No Endless Platform Rules",
+    title: "Business Independence",
     description: "Operate your business your way. We provide infrastructure, not restrictions.",
-    icon: "🚫",
+    icon: "⚙️",
   },
   {
     title: "Flexible Operations",
@@ -53,8 +53,8 @@ const comparisonData = [
   { feature: "Booking Control", driveConnect: "Full operator control", competitor: "Platform decides" },
   { feature: "Pricing Control", driveConnect: "Set your own rates", competitor: "Platform influences pricing" },
   { feature: "Customer Relationships", driveConnect: "Direct with renters", competitor: "Platform owns relationship" },
-  { feature: "Airport Operations", driveConnect: "No restrictions", competitor: "Airport fees & restrictions" },
-  { feature: "Platform Rules", driveConnect: "Minimal, fair policies", competitor: "Constantly changing rules" },
+  { feature: "Market Participation", driveConnect: "Flexible market participation", competitor: "Geographic restrictions" },
+  { feature: "Platform Rules", driveConnect: "Business independence", competitor: "Constantly changing rules" },
   { feature: "Business Independence", driveConnect: "You own your business", competitor: "Platform dependency" },
 ];
 
@@ -129,7 +129,7 @@ export default function BecomeAPartnerPage() {
               margin: "0 auto 2.5rem",
             }}
           >
-            Traditional rental platforms create conflict. Operators make less. Platforms control too much. Too many restrictions. Too many policies. Too much interference. Drive Connect changes the model.
+            Drive Connect applies market principles to car rental. Aligned incentives. Transparent economics. Operator autonomy. The infrastructure exists to serve participants — not to extract value from them.
           </p>
           <Link
             href="/partner-application"
@@ -146,7 +146,7 @@ export default function BecomeAPartnerPage() {
               borderRadius: "6px",
             }}
           >
-            Apply Now
+            JOIN AS AN OPERATOR
           </Link>
         </div>
       </section>
@@ -187,12 +187,12 @@ export default function BecomeAPartnerPage() {
                 </h3>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                   {[
-                    "Traditional platforms create conflict",
-                    "Operators make less",
-                    "Platforms control too much",
-                    "Too many restrictions",
-                    "Too many policies",
-                    "Too much interference",
+                    "Misaligned incentives create friction",
+                    "Operators surrender margin unnecessarily",
+                    "Platforms extract value rather than create it",
+                    "Structural leverage favors the platform",
+                    "Participants lack independence",
+                    "The market functions inefficiently",
                   ].map((item) => (
                     <li key={item} style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.625rem", fontSize: "0.9375rem", color: "#aaaaaa" }}>
                       <span style={{ color: "#555555", fontSize: "1rem" }}>✗</span>
@@ -207,12 +207,12 @@ export default function BecomeAPartnerPage() {
                 </h3>
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                   {[
-                    "Private bookings create higher revenue",
-                    "Lower fees create better margins",
-                    "No unnecessary restrictions",
-                    "No endless policy changes",
-                    "No platform controlling your business",
-                    "Exactly how peer-to-peer should work",
+                    "Direct customer relationships create higher revenue",
+                    "Transparent pricing freedom creates better margins",
+                    "Operator autonomy by design",
+                    "Business independence preserved",
+                    "Aligned incentives benefit every participant",
+                    "Infrastructure that serves the market",
                   ].map((item) => (
                     <li key={item} style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.625rem", fontSize: "0.9375rem", color: "#cccccc" }}>
                       <span style={{ color: "#DC2626", fontSize: "1rem" }}>✓</span>
@@ -383,10 +383,10 @@ export default function BecomeAPartnerPage() {
                 borderRadius: "6px",
               }}
             >
-              Apply Now
+              JOIN AS AN OPERATOR
             </Link>
             <Link
-              href="/how-it-works"
+              href="/market-principle"
               style={{
                 backgroundColor: "transparent",
                 color: "#ffffff",
@@ -400,7 +400,7 @@ export default function BecomeAPartnerPage() {
                 border: "2px solid rgba(255,255,255,0.5)",
               }}
             >
-              How It Works
+              THE MARKET PRINCIPLE
             </Link>
           </div>
         </div>

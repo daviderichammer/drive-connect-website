@@ -330,7 +330,7 @@ export default function WhyWeExistPage() {
                 borderRadius: "6px",
               }}
             >
-              Find A Car
+              ENTER THE NETWORK
             </Link>
             <Link
               href="/become-a-partner"
