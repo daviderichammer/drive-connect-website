@@ -123,7 +123,7 @@ export default function PartnerApplicationPage() {
                 marginBottom: "1.5rem",
               }}
             >
-              &ldquo;Business works best when everyone succeeds together.&rdquo;
+              &ldquo;Professional operators grow further with connected infrastructure behind every vehicle.&rdquo;
             </p>
             <Link
               href="/"
@@ -189,7 +189,7 @@ export default function PartnerApplicationPage() {
             Join The Drive Network
           </h1>
           <p style={{ color: "#888888", fontSize: "1rem", lineHeight: 1.7 }}>
-            Drive Connect is economic infrastructure for independent operators. This application begins the process of joining a network built on aligned incentives, transparent economics, and genuine operator independence.
+            Apply to join the customer-facing marketplace of the Global Drive Holdings ecosystem. Drive Connect is built for professional hosts, independent rental companies, franchise operators, and fleet businesses seeking customer demand connected to vehicle intelligence, protection, service, parts, and operating support.
           </p>
         </div>
       </section>

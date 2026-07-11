@@ -1,10 +1,7 @@
 "use client";
-
 import Link from "next/link";
-
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-
   return (
     <footer style={{ backgroundColor: "#000000", color: "#ffffff" }}>
       {/* Philosophy Banner */}
@@ -25,10 +22,9 @@ export default function Footer() {
             margin: 0,
           }}
         >
-          DRIVE CONNECT — Economic Fairness Doctrine &nbsp;·&nbsp; Trust Infrastructure &nbsp;·&nbsp; Aligned Incentives &nbsp;·&nbsp; Shared Success
+          MORE THAN A MARKETPLACE. AN ECOSYSTEM BUILT FOR PROFESSIONAL VEHICLE OPERATORS.
         </p>
       </div>
-
       {/* Main Footer */}
       <div
         style={{
@@ -40,7 +36,7 @@ export default function Footer() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
             gap: "2.5rem",
             marginBottom: "3rem",
           }}
@@ -76,13 +72,24 @@ export default function Footer() {
                 fontSize: "0.875rem",
                 lineHeight: 1.7,
                 maxWidth: "240px",
+                marginBottom: "1rem",
               }}
             >
-              Economic fairness doctrine applied to car rental. Trust infrastructure where every participant succeeds.
+              The customer-facing marketplace of the Global Drive Holdings ecosystem. Built for professional operators and the full vehicle lifecycle.
+            </p>
+            <p
+              style={{
+                color: "#555555",
+                fontSize: "0.75rem",
+                lineHeight: 1.6,
+                maxWidth: "240px",
+              }}
+            >
+              Professional operators provide vehicles and customer service. Drive Connect connects demand with integrated technology, protection, service, and operational infrastructure.
             </p>
           </div>
 
-          {/* Renters */}
+          {/* For Renters */}
           <div>
             <h4
               style={{
@@ -98,9 +105,12 @@ export default function Footer() {
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[
-                { href: "/find-a-car", label: "Enter The Network" },
-                { href: "/market-principle", label: "The Market Principle" },
-                { href: "/protection-plans", label: "Trust Infrastructure" },
+                { href: "/find-a-car", label: "Browse Vehicles" },
+                { href: "/driver-verification", label: "Get Verified" },
+                { href: "/protection-plan-terms", label: "Protection Plans" },
+                { href: "/rental-terms", label: "Rental Terms" },
+                { href: "/security-deposit-policy", label: "Security Deposits" },
+                { href: "/claims-protection-policy", label: "Claims Process" },
                 { href: "/support", label: "Support" },
               ].map((link) => (
                 <li key={link.href} style={{ marginBottom: "0.625rem" }}>
@@ -110,7 +120,6 @@ export default function Footer() {
                       color: "#888888",
                       textDecoration: "none",
                       fontSize: "0.875rem",
-                      transition: "color 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
                       (e.target as HTMLAnchorElement).style.color = "#DC2626";
@@ -126,7 +135,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Operators */}
+          {/* For Operators */}
           <div>
             <h4
               style={{
@@ -143,7 +152,8 @@ export default function Footer() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[
                 { href: "/become-a-partner", label: "Join The Network" },
-                { href: "/partner-application", label: "Join As An Operator" },
+                { href: "/partner-application", label: "Apply As Operator" },
+                { href: "/operator-agreement", label: "Operator Agreement" },
                 { href: "/host-login", label: "Operator Login" },
                 { href: "/support", label: "Operator Support" },
               ].map((link) => (
@@ -154,7 +164,6 @@ export default function Footer() {
                       color: "#888888",
                       textDecoration: "none",
                       fontSize: "0.875rem",
-                      transition: "color 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
                       (e.target as HTMLAnchorElement).style.color = "#DC2626";
@@ -170,7 +179,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Philosophy */}
           <div>
             <h4
               style={{
@@ -182,15 +191,19 @@ export default function Footer() {
                 marginBottom: "1rem",
               }}
             >
-              Company
+              Company & Ecosystem
             </h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[
+                { href: "/about", label: "About Drive Connect" },
                 { href: "/why-we-exist", label: "Why We Exist" },
+                { href: "/drive-philosophy", label: "Drive Philosophy" },
+                { href: "/trust-infrastructure", label: "Trust Infrastructure" },
+                { href: "/how-market-engine-works", label: "How The Market Works" },
+                { href: "/future-markets", label: "Future Markets" },
                 { href: "/why-we-built-this", label: "Why We Built This" },
                 { href: "/market-principle", label: "The Market Principle" },
                 { href: "/vision", label: "Our Vision" },
-                { href: "/support", label: "Contact Us" },
               ].map((link) => (
                 <li key={link.href} style={{ marginBottom: "0.625rem" }}>
                   <Link
@@ -199,7 +212,6 @@ export default function Footer() {
                       color: "#888888",
                       textDecoration: "none",
                       fontSize: "0.875rem",
-                      transition: "color 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
                       (e.target as HTMLAnchorElement).style.color = "#DC2626";
@@ -214,6 +226,77 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+
+          {/* Legal */}
+          <div>
+            <h4
+              style={{
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: "0.8125rem",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                marginBottom: "1rem",
+              }}
+            >
+              Legal
+            </h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {[
+                { href: "/terms-of-service", label: "Terms of Service" },
+                { href: "/privacy-policy", label: "Privacy Policy" },
+                { href: "/operator-agreement", label: "Operator Agreement" },
+                { href: "/rental-terms", label: "Rental Terms" },
+                { href: "/protection-plan-terms", label: "Protection Plan Terms" },
+                { href: "/security-deposit-policy", label: "Security Deposit Policy" },
+                { href: "/claims-protection-policy", label: "Claims & Protection" },
+                { href: "/dispute-resolution", label: "Dispute Resolution" },
+                { href: "/fraud-prevention", label: "Fraud Prevention" },
+                { href: "/driver-verification", label: "Driver Verification" },
+              ].map((link) => (
+                <li key={link.href} style={{ marginBottom: "0.625rem" }}>
+                  <Link
+                    href={link.href}
+                    style={{
+                      color: "#888888",
+                      textDecoration: "none",
+                      fontSize: "0.875rem",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLAnchorElement).style.color = "#DC2626";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLAnchorElement).style.color = "#888888";
+                    }}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Payment administrator notice */}
+        <div
+          style={{
+            backgroundColor: "#0a0a0a",
+            border: "1px solid #1a1a1a",
+            borderRadius: "8px",
+            padding: "1.25rem 1.5rem",
+            marginBottom: "2rem",
+          }}
+        >
+          <p
+            style={{
+              color: "#555555",
+              fontSize: "0.75rem",
+              lineHeight: 1.7,
+              margin: 0,
+            }}
+          >
+            <strong style={{ color: "#888888" }}>Payment Administration Notice:</strong> Drive Connect acts as authorized payment administrator for participating professional operators and affiliated service providers. Participating operators provide vehicles and rental services. Protection Plans are provided by Drive Protection Inc., an independent protection plan provider. Drive Connect does not provide insurance and does not own or operate vehicles listed on the platform.
+          </p>
         </div>
 
         {/* Bottom bar */}
@@ -237,18 +320,35 @@ export default function Footer() {
           >
             &copy; {currentYear} Drive Connect. All rights reserved.
           </p>
-          <p
-            style={{
-              color: "#555555",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              margin: 0,
-            }}
-          >
-            Fairness · Integrity · Trust · Independence · Accountability · Shared Success
-          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem" }}>
+            {[
+              { href: "/terms-of-service", label: "Terms" },
+              { href: "/privacy-policy", label: "Privacy" },
+              { href: "/dispute-resolution", label: "Disputes" },
+              { href: "/fraud-prevention", label: "Fraud Prevention" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                style={{
+                  color: "#555555",
+                  textDecoration: "none",
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLAnchorElement).style.color = "#DC2626";
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLAnchorElement).style.color = "#555555";
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

@@ -109,14 +109,105 @@ export default function FindACarPage() {
 
   return (
     <>
-      {/* Page Header */}
-      <section style={{ backgroundColor: '#000000', padding: '3rem 1.5rem', color: '#ffffff' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>
-            Enter The Network.
+
+      {/* PROFESSIONAL VEHICLES, CONNECTED MARKETPLACE */}
+      <section
+        style={{
+          backgroundColor: '#000000',
+          padding: '5rem 1.5rem',
+          borderBottom: '4px solid #DC2626',
+        }}
+      >
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+          <h1
+            style={{
+              color: '#ffffff',
+              fontWeight: 900,
+              fontSize: 'clamp(1.75rem, 5vw, 3.5rem)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.0,
+              marginBottom: '1rem',
+              textTransform: 'uppercase',
+            }}
+          >
+            PROFESSIONAL VEHICLES. CONNECTED MARKETPLACE.
           </h1>
+          <p
+            style={{
+              color: '#cccccc',
+              fontSize: 'clamp(1rem, 2.5vw, 1.125rem)',
+              lineHeight: 1.8,
+              maxWidth: '760px',
+              marginBottom: '2rem',
+            }}
+          >
+            Browse vehicles from professional hosts, independent rental operators, and fleet businesses participating in the Drive Connect marketplace. Every reservation connects customers with operator-provided inventory and a broader ecosystem built around the vehicle lifecycle.
+          </p>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <a
+              href="/find-a-car"
+              style={{
+                backgroundColor: '#DC2626',
+                color: '#ffffff',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.9375rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                padding: '1rem 2.5rem',
+                borderRadius: '6px',
+                display: 'inline-block',
+              }}
+            >
+              BROWSE VEHICLES
+            </a>
+            <a
+              href="/find-a-car"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#ffffff',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.9375rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                padding: '1rem 2.5rem',
+                borderRadius: '6px',
+                border: '2px solid #555555',
+                display: 'inline-block',
+              }}
+            >
+              VERIFIED OPERATORS
+            </a>
+            <a
+              href="/find-a-car"
+              style={{
+                backgroundColor: 'transparent',
+                color: '#DC2626',
+                textDecoration: 'none',
+                fontWeight: 700,
+                fontSize: '0.9375rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                padding: '1rem 2.5rem',
+                borderRadius: '6px',
+                border: '2px solid #DC2626',
+                display: 'inline-block',
+              }}
+            >
+              CONNECTED ECOSYSTEM
+            </a>
+          </div>
+        </div>
+      </section>
+      {/* Page Header */}
+      <section style={{ backgroundColor: '#000000', padding: '3rem 1.5rem', color: '#ffffff', borderTop: '1px solid #1a1a1a' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '0.5rem', color: '#ffffff' }}>
+            Browse Verified Vehicles
+          </h2>
           <p style={{ color: '#aaaaaa', fontSize: '1.0625rem' }}>
-            Verified operators. Transparent pricing. Direct relationships. The market as it should function.
+            Professional operator inventory. Clear vehicle information. A customer marketplace connected to lifecycle infrastructure.
           </p>
         </div>
       </section>

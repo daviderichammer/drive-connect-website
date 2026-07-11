@@ -316,11 +316,11 @@ export default function WhyWeBuiltThisPage() {
                 marginBottom: "1.5rem",
               }}
             >
-              We built the trust infrastructure. We built the auction engine
-              that creates genuine price discovery. We built the verification
-              systems that make strangers trustworthy. We built the operator
-              tools that preserve independence. We built the fee structure that
-              aligns incentives rather than extracting from them.
+              We built the marketplace and transaction infrastructure. We built
+              verification and reservation workflows for professional operators
+              and their customers. We connected that demand layer to vehicle
+              intelligence, protection, service, parts, analytics, and the broader
+              operating capabilities of the Global Drive Holdings ecosystem.
             </p>
             <p
               style={{
@@ -330,9 +330,10 @@ export default function WhyWeBuiltThisPage() {
                 marginBottom: "1.5rem",
               }}
             >
-              We are not done. The network is early. The doctrine is being
-              proven. But the foundation is right. And when the foundation is
-              right, everything built on it can be trusted.
+              We are not done. The professional operator network is early and the
+              ecosystem continues to expand. The foundation is a connected model
+              designed to support the vehicle before, during, and after every
+              reservation.
             </p>
             <p
               style={{

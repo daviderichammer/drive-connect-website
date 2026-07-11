@@ -4,14 +4,15 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Drive Connect — Built For Operators. Designed For Travelers.",
+  title: "Drive Connect — The Marketplace Built for Professional Vehicle Operators",
   description:
-    "Drive Connect is a trusted peer-to-peer vehicle rental platform. Lower prices for renters. Higher revenue for operators. No unnecessary middleman.",
+    "Drive Connect is the customer-facing marketplace of the Global Drive Holdings ecosystem, connecting professional vehicle operators with customers through integrated technology, protection, service, and operational infrastructure.",
   keywords:
-    "car rental, peer to peer rental, vehicle rental, Drive Connect, rental platform, luxury car rental",
+    "professional vehicle operators, independent rental operators, fleet marketplace, vehicle lifecycle, Drive Connect, Global Drive Holdings, Drive KeZ",
   openGraph: {
-    title: "Drive Connect",
-    description: "Built For Operators. Designed For Travelers.",
+    title: "Drive Connect — Built for Professional Vehicle Operators",
+    description:
+      "More than a marketplace. An ecosystem for professional vehicle operators and their customers.",
     type: "website",
   },
 };

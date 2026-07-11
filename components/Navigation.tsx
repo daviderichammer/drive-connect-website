@@ -1,21 +1,47 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 
 const navLinks = [
-  { href: "/find-a-car", label: "Enter The Network" },
-  { href: "/become-a-partner", label: "Join As Operator" },
-  { href: "/market-principle", label: "The Market Principle" },
-  { href: "/protection-plans", label: "Trust Infrastructure" },
-  { href: "/why-we-exist", label: "Why We Exist" },
+  { href: "/find-a-car", label: "Find A Vehicle" },
+  { href: "/become-a-partner", label: "List Vehicles" },
+  {
+    label: "Ecosystem",
+    dropdown: [
+      { href: "/about", label: "About Drive Connect" },
+      { href: "/why-we-exist", label: "Why Drive Connect Exists" },
+      { href: "/how-market-engine-works", label: "Connected Operator Model" },
+      { href: "/trust-infrastructure", label: "Ecosystem Infrastructure" },
+      { href: "/drive-philosophy", label: "Drive Philosophy" },
+      { href: "/future-markets", label: "Future Markets" },
+      { href: "/market-principle", label: "The Market Principle" },
+      { href: "/why-we-built-this", label: "Why We Built This" },
+      { href: "/vision", label: "Our Vision" },
+    ],
+  },
+  {
+    label: "Legal",
+    dropdown: [
+      { href: "/terms-of-service", label: "Terms of Service" },
+      { href: "/privacy-policy", label: "Privacy Policy" },
+      { href: "/operator-agreement", label: "Operator Agreement" },
+      { href: "/rental-terms", label: "Rental Terms" },
+      { href: "/protection-plan-terms", label: "Protection Plan Terms" },
+      { href: "/security-deposit-policy", label: "Security Deposit Policy" },
+      { href: "/claims-protection-policy", label: "Claims & Protection" },
+      { href: "/dispute-resolution", label: "Dispute Resolution" },
+      { href: "/fraud-prevention", label: "Fraud Prevention" },
+      { href: "/driver-verification", label: "Driver Verification" },
+    ],
+  },
   { href: "/support", label: "Support" },
 ];
 
 export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const pathname = usePathname();
 
   return (
@@ -83,32 +109,110 @@ export default function Navigation() {
           }}
           className="hidden-mobile"
         >
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              style={{
-                color: pathname === link.href ? "#DC2626" : "#cccccc",
-                textDecoration: "none",
-                fontSize: "0.8rem",
-                fontWeight: 500,
-                letterSpacing: "0.02em",
-                padding: "0.5rem 0.625rem",
-                borderRadius: "4px",
-                transition: "color 0.2s ease",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => {
-                (e.target as HTMLAnchorElement).style.color = "#ffffff";
-              }}
-              onMouseLeave={(e) => {
-                (e.target as HTMLAnchorElement).style.color =
-                  pathname === link.href ? "#DC2626" : "#cccccc";
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            if ("dropdown" in link && link.dropdown) {
+              return (
+                <div
+                  key={link.label}
+                  style={{ position: "relative" }}
+                  onMouseEnter={() => setOpenDropdown(link.label)}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <button
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#cccccc",
+                      fontSize: "0.8rem",
+                      fontWeight: 500,
+                      letterSpacing: "0.02em",
+                      padding: "0.5rem 0.625rem",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      fontFamily: "Inter, sans-serif",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {link.label}
+                    <ChevronDown size={12} />
+                  </button>
+                  {openDropdown === link.label && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        backgroundColor: "#0a0a0a",
+                        border: "1px solid #1a1a1a",
+                        borderRadius: "8px",
+                        padding: "0.5rem 0",
+                        minWidth: "220px",
+                        zIndex: 100,
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                      }}
+                    >
+                      {link.dropdown.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          style={{
+                            display: "block",
+                            color: pathname === item.href ? "#DC2626" : "#cccccc",
+                            textDecoration: "none",
+                            fontSize: "0.8125rem",
+                            fontWeight: 500,
+                            padding: "0.5rem 1rem",
+                            transition: "color 0.2s ease, background-color 0.2s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            const el = e.target as HTMLAnchorElement;
+                            el.style.color = "#ffffff";
+                            el.style.backgroundColor = "#1a1a1a";
+                          }}
+                          onMouseLeave={(e) => {
+                            const el = e.target as HTMLAnchorElement;
+                            el.style.color = pathname === item.href ? "#DC2626" : "#cccccc";
+                            el.style.backgroundColor = "transparent";
+                          }}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <Link
+                key={(link as { href: string; label: string }).href}
+                href={(link as { href: string; label: string }).href}
+                style={{
+                  color: pathname === (link as { href: string; label: string }).href ? "#DC2626" : "#cccccc",
+                  textDecoration: "none",
+                  fontSize: "0.8rem",
+                  fontWeight: 500,
+                  letterSpacing: "0.02em",
+                  padding: "0.5rem 0.625rem",
+                  borderRadius: "4px",
+                  transition: "color 0.2s ease",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLAnchorElement).style.color = "#ffffff";
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLAnchorElement).style.color =
+                    pathname === (link as { href: string; label: string }).href ? "#DC2626" : "#cccccc";
+                }}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
           <Link
             href="/host-login"
             style={{
@@ -132,7 +236,7 @@ export default function Navigation() {
               (e.target as HTMLAnchorElement).style.backgroundColor = "#DC2626";
             }}
           >
-            Host Login
+            Operator Login
           </Link>
         </div>
 
@@ -161,26 +265,68 @@ export default function Navigation() {
             backgroundColor: "#0a0a0a",
             borderTop: "1px solid #1a1a1a",
             padding: "1rem 1.5rem",
+            maxHeight: "80vh",
+            overflowY: "auto",
           }}
         >
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                display: "block",
-                color: pathname === link.href ? "#DC2626" : "#cccccc",
-                textDecoration: "none",
-                fontSize: "0.9375rem",
-                fontWeight: 500,
-                padding: "0.75rem 0",
-                borderBottom: "1px solid #1a1a1a",
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            if ("dropdown" in link && link.dropdown) {
+              return (
+                <div key={link.label}>
+                  <p
+                    style={{
+                      color: "#DC2626",
+                      fontWeight: 700,
+                      fontSize: "0.6875rem",
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
+                      padding: "0.75rem 0 0.375rem 0",
+                      borderBottom: "1px solid #1a1a1a",
+                      margin: 0,
+                    }}
+                  >
+                    {link.label}
+                  </p>
+                  {link.dropdown.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      style={{
+                        display: "block",
+                        color: pathname === item.href ? "#DC2626" : "#aaaaaa",
+                        textDecoration: "none",
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        padding: "0.5rem 0 0.5rem 0.75rem",
+                        borderBottom: "1px solid #111111",
+                      }}
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              );
+            }
+            return (
+              <Link
+                key={(link as { href: string; label: string }).href}
+                href={(link as { href: string; label: string }).href}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  display: "block",
+                  color: pathname === (link as { href: string; label: string }).href ? "#DC2626" : "#cccccc",
+                  textDecoration: "none",
+                  fontSize: "0.9375rem",
+                  fontWeight: 500,
+                  padding: "0.75rem 0",
+                  borderBottom: "1px solid #1a1a1a",
+                }}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
           <Link
             href="/host-login"
             onClick={() => setMobileOpen(false)}
@@ -199,7 +345,7 @@ export default function Navigation() {
               textAlign: "center",
             }}
           >
-            Host Login
+            Operator Login
           </Link>
         </div>
       )}

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Our Vision | Drive Connect",
-  description: "Drive Connect's vision for the future of transportation markets: a global trust infrastructure that enables independent operators to build real businesses.",
+  description: "Drive Connect's vision for a professional vehicle marketplace connected to technology, protection, service, parts, analytics, and operator growth infrastructure.",
 };
 
 const phases = [
@@ -12,7 +12,7 @@ const phases = [
     status: "Active",
     statusColor: "#DC2626",
     description:
-      "Establish Drive Connect as a functioning trust infrastructure in initial markets. Demonstrate that aligned incentives produce better outcomes for operators, renters, and the network. Build the verification systems, auction engine, and operator tools that make the model work.",
+      "Establish Drive Connect as a professional vehicle marketplace in initial markets. Connect operator inventory with customer demand while strengthening verification, reservation, vehicle-intelligence, and operator workflows.",
     milestones: [
       "Trust infrastructure deployed",
       "Operator verification system active",
@@ -26,7 +26,7 @@ const phases = [
     status: "In Development",
     statusColor: "#888888",
     description:
-      "Expand the Drive Network to major metropolitan markets across North America. Each new market adds operators, renters, and network density. As the network grows, the value of participation increases for every participant — a genuine network effect built on trust rather than lock-in.",
+      "Expand the professional operator network across major North American markets. Each participating operator adds vehicle supply, customer access, connected data, and new opportunities for protection, service, parts, and recurring ecosystem relationships.",
     milestones: [
       "Multi-city operator network",
       "Cross-market vehicle availability",
@@ -40,7 +40,7 @@ const phases = [
     status: "Planned",
     statusColor: "#555555",
     description:
-      "Drive Connect becomes the reference architecture for how peer-to-peer vehicle markets should function. The principles of aligned incentives, transparent pricing, and operator independence become the baseline expectation — not the exception. Other markets begin adopting the model.",
+      "Drive Connect becomes a reference architecture for professional, operator-supplied vehicle marketplaces connected to full-lifecycle infrastructure. Integrated marketplace, technology, protection, service, parts, and analytics capabilities establish a scalable operating standard.",
     milestones: [
       "Industry standard trust protocols",
       "Open operator certification program",
@@ -50,38 +50,38 @@ const phases = [
   },
   {
     phase: "Phase IV",
-    title: "Expand The Doctrine",
+    title: "Extend The Ecosystem",
     status: "Vision",
     statusColor: "#333333",
     description:
-      "The economic fairness doctrine that Drive Connect applied to car rental extends to adjacent markets. Equipment rental. Commercial vehicles. Specialty assets. Any market where a platform currently extracts value from participants who deserve independence becomes a candidate for the Drive Connect model.",
+      "The connected operating model established in automotive extends to adjacent professional asset markets, including equipment, commercial fleets, specialty vehicles, and other categories where demand and lifecycle infrastructure can be coordinated.",
     milestones: [
       "Adjacent market expansion",
       "Commercial fleet integration",
       "Institutional operator programs",
-      "Market doctrine licensing",
+      "Connected ecosystem programs",
     ],
   },
 ];
 
 const beliefs = [
   {
-    statement: "Independent operators should build real businesses, not gig dependencies.",
+    statement: "Professional operators are the foundation of the marketplace.",
   },
   {
-    statement: "Renters deserve transparent pricing and direct relationships with operators.",
+    statement: "Customers deserve clear, professional vehicle experiences.",
   },
   {
-    statement: "Trust infrastructure should serve the market, not extract from it.",
+    statement: "Vehicle intelligence should strengthen everyday operating decisions.",
   },
   {
-    statement: "Aligned incentives produce better outcomes than structural conflict.",
+    statement: "Protection, service, parts, and analytics belong in one connected lifecycle.",
   },
   {
-    statement: "The best platform is the one that makes itself invisible.",
+    statement: "Operator participation enables capital-efficient geographic scale.",
   },
   {
-    statement: "Markets that work for everyone grow faster than markets that work for one.",
+    statement: "Multiple ecosystem channels can increase the value of every operator relationship.",
   },
 ];
 

@@ -8,66 +8,66 @@ export const metadata = {
 const principles = [
   {
     number: "I",
-    title: "Markets Function Best When Incentives Are Aligned",
-    body: "The traditional rental model creates structural conflict. Platforms profit when operators earn less. Operators succeed when renters pay more. Renters win only when both lose. This is not a market — it is an extraction mechanism. Drive Connect was built on the premise that a well-designed market aligns the incentives of every participant toward a shared outcome.",
+    title: "Professional Operators Are the Foundation",
+    body: "Drive Connect is designed around professional hosts, independent rental companies, franchise operators, and fleet owners. Operators provide the vehicles and customer experience; the marketplace connects them with demand.",
   },
   {
     number: "II",
-    title: "Transparency Is Not a Feature — It Is a Foundation",
-    body: "Hidden fees, dynamic surge pricing, and opaque policy changes are symptoms of a system that profits from information asymmetry. Drive Connect operates on transparent pricing. Operators set rates. Renters see exactly what they pay. There are no surprises at checkout. Transparency is not a marketing promise — it is the structural basis of trust.",
+    title: "Clear Information Creates Stronger Transactions",
+    body: "Vehicle details, pricing, availability, operator responsibilities, and customer expectations should be understandable throughout the reservation process. Clarity supports confidence for every participant.",
   },
   {
     number: "III",
-    title: "Operators Deserve Sovereignty Over Their Own Business",
-    body: "An operator who owns vehicles should control how those vehicles are deployed, priced, and managed. Platforms that override operator decisions — restricting geography, mandating pricing, or controlling customer relationships — are not infrastructure providers. They are landlords. Drive Connect provides infrastructure that serves operators, not infrastructure that controls them.",
+    title: "The Vehicle Lifecycle Extends Beyond the Booking",
+    body: "Professional vehicle businesses also require intelligence, protection, service coordination, parts access, analytics, and operating visibility. Drive Connect connects the reservation to this broader lifecycle infrastructure.",
   },
   {
     number: "IV",
-    title: "Trust Must Be Engineered, Not Assumed",
-    body: "Trust between strangers does not emerge naturally in a marketplace. It must be built through verified identity, transparent history, structured accountability, and clear consequences. Drive Connect's trust infrastructure — verification systems, deposit mechanisms, review architecture, and dispute resolution — exists to make trust a reliable property of every transaction.",
+    title: "Trust Must Be Supported by Systems",
+    body: "Verification, connected vehicle signals, protection resources, clear responsibilities, and structured support help create a more dependable environment for operators and customers.",
   },
   {
     number: "V",
-    title: "The Auction Engine Creates Price Discovery, Not Price Extraction",
-    body: "Price discovery is the mechanism by which a market finds the fair value of a transaction. Drive Connect's auction engine allows renters to bid and operators to accept, creating genuine market-clearing prices. This is not a race to the bottom. It is the mechanism by which supply and demand find equilibrium without a platform extracting margin from the middle.",
+    title: "Connected Data Improves Decisions",
+    body: "Drive KeZ and Drive Cloud are intended to connect location, diagnostics, recovery, condition, access, and performance data with the workflows professional operators manage every day.",
   },
   {
     number: "VI",
-    title: "Independence Scales. Dependency Does Not.",
-    body: "Operators who depend entirely on a single platform are not building businesses — they are building exposure. Drive Connect is designed to help operators build independent businesses: their own customer relationships, their own reputation, their own pricing power. The network provides reach. The operator retains ownership.",
+    title: "Participation Creates Capital-Efficient Scale",
+    body: "Drive Connect can expand through professional operator inventory, technology, strategic relationships, and ecosystem services without requiring centralized ownership of a national fleet.",
   },
 ];
 
 const marketComparisons = [
   {
-    category: "Price Formation",
-    traditional: "Platform sets or heavily influences pricing through algorithms",
-    driveConnect: "Operators set prices; auction engine enables genuine market discovery",
+    category: "Customer Demand",
+    traditional: "Professional operator inventory and renter discovery",
+    driveConnect: "Marketplace access and reservation infrastructure",
   },
   {
-    category: "Revenue Distribution",
-    traditional: "Platform extracts 25–35% before operator receives earnings",
-    driveConnect: "Lower, transparent fees; operators retain the majority of revenue",
+    category: "Vehicle Intelligence",
+    traditional: "Location, diagnostics, recovery, condition, and access signals",
+    driveConnect: "Drive KeZ connected-vehicle integration",
   },
   {
-    category: "Customer Ownership",
-    traditional: "Platform owns the customer relationship; operator is anonymous",
-    driveConnect: "Operator builds direct relationships; customers know who they rent from",
+    category: "Operating Visibility",
+    traditional: "Vehicle and fleet performance information",
+    driveConnect: "Drive Cloud data and analytics layer",
   },
   {
-    category: "Geographic Freedom",
-    traditional: "Platform restricts where and how operators can serve customers",
-    driveConnect: "Operators deploy their fleet where their market demands",
+    category: "Protection Support",
+    traditional: "Connected resources across the transaction lifecycle",
+    driveConnect: "Drive Protection ecosystem access",
   },
   {
-    category: "Policy Stability",
-    traditional: "Rules change unilaterally; operators adapt or exit",
-    driveConnect: "Stable, published policies; operators plan with confidence",
+    category: "Service and Parts",
+    traditional: "Lifecycle maintenance, repair, and sourcing support",
+    driveConnect: "Drive Service Network and Drive Parts Network",
   },
   {
-    category: "Trust Architecture",
-    traditional: "Platform mediates all disputes; outcome favors platform interest",
-    driveConnect: "Structured trust infrastructure with transparent dispute resolution",
+    category: "Revenue Density",
+    traditional: "Bookings, technology, protection, service, parts, and subscriptions",
+    driveConnect: "Multiple channels across one operator relationship",
   },
 ];
 
@@ -159,8 +159,7 @@ export default function MarketPrinciplePage() {
               margin: 0,
             }}
           >
-            &ldquo;A market that extracts value from its participants is not a
-            market. It is a toll road. Drive Connect removes the toll.&rdquo;
+            &ldquo;Professional operators create the supply. Connected infrastructure helps turn that supply into durable customer and lifecycle value.&rdquo;
           </p>
         </div>
       </section>
@@ -255,10 +254,10 @@ export default function MarketPrinciplePage() {
                 marginBottom: "1rem",
               }}
             >
-              The Structural Difference
+              The Connected Operating Model
             </h2>
             <p style={{ color: "#888888", fontSize: "1.0625rem", maxWidth: "560px", margin: "0 auto" }}>
-              Not a feature comparison. A comparison of market architectures.
+              The marketplace and ecosystem layers supporting each professional operator relationship.
             </p>
           </div>
 
@@ -274,13 +273,13 @@ export default function MarketPrinciplePage() {
               }}
             >
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#555555", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                Market Property
+                Operator Need
               </span>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#DC2626", letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center" }}>
                 Drive Connect
               </span>
               <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#555555", letterSpacing: "0.1em", textTransform: "uppercase", textAlign: "center" }}>
-                Traditional Platforms
+                Connected Support
               </span>
             </div>
             {marketComparisons.map((row, i) => (
@@ -325,9 +324,9 @@ export default function MarketPrinciplePage() {
               lineHeight: 1.1,
             }}
           >
-            This Is Not A Better Product.
+            More Than A Marketplace.
             <br />
-            <span style={{ color: "#DC2626" }}>It Is A Better System.</span>
+            <span style={{ color: "#DC2626" }}>A Connected Operating Ecosystem.</span>
           </h2>
           <p
             style={{
@@ -337,12 +336,7 @@ export default function MarketPrinciplePage() {
               marginBottom: "1.5rem",
             }}
           >
-            Drive Connect was built from the conviction that the car rental
-            industry&apos;s problems are not operational — they are structural.
-            The platforms were designed to extract, not to enable. The fees
-            were set to maximize platform revenue, not participant success. The
-            rules were written to protect platform interests, not operator
-            independence.
+            Drive Connect was built around the operating reality that a professional vehicle business needs more than reservations. It needs customer demand connected with technology, protection, service, parts, analytics, and lifecycle support.
           </p>
           <p
             style={{
@@ -352,10 +346,7 @@ export default function MarketPrinciplePage() {
               marginBottom: "3rem",
             }}
           >
-            Fixing these problems required rebuilding the system from its
-            economic foundation. That is what Drive Connect is. Not a rental
-            company. Not a marketplace. An economic infrastructure built on the
-            principle that markets work best when everyone in them can succeed.
+            As the customer-facing marketplace of Global Drive Holdings, Drive Connect brings those capabilities into one coordinated operator ecosystem designed to support durable vehicle businesses and professional customer experiences.
           </p>
           <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
             <Link
@@ -372,7 +363,7 @@ export default function MarketPrinciplePage() {
                 borderRadius: "6px",
               }}
             >
-              ENTER THE NETWORK
+              FIND A VEHICLE
             </Link>
             <Link
               href="/why-we-built-this"
