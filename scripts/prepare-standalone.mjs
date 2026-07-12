@@ -27,4 +27,8 @@ if (existsSync(sourcePublic)) {
   await cp(sourcePublic, targetPublic, { recursive: true });
 }
 
+for (const envFile of [".env", ".env.local", ".env.production", ".env.production.local"]) {
+  await rm(resolve(standaloneRoot, envFile), { force: true });
+}
+
 console.log("Prepared Next.js standalone runtime assets.");
