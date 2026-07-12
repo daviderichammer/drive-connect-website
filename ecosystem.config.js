@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 module.exports = {
   apps: [{
     name: 'drive-connect',
@@ -12,7 +14,8 @@ module.exports = {
       PORT: 3003,
       HOSTNAME: '0.0.0.0',
       DATABASE_URL: 'mysql://drive_connect_user:DriveConnect2024!@localhost:3306/drive_connect',
-      NEXT_PUBLIC_SITE_URL: 'http://5.161.189.93'
+      NEXT_PUBLIC_SITE_URL: 'http://5.161.189.93',
+      GCP_SERVICE_ACCOUNT_JSON: fs.readFileSync('/opt/drive-connect/service-account.json', 'utf8')
     }
   }]
 };

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { appendPartnerApplicationToSheet } from "@/lib/sheets";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const {
       businessName,
       ownerName,
@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Save to database
     const application = await prisma.partnerApplication.create({
       data: {
         businessName,
@@ -51,6 +52,28 @@ export async function POST(req: NextRequest) {
         wouldUseDCSupport: wouldUseDCSupport || false,
         status: "pending",
       },
+    });
+
+    // Append to Google Sheet (non-blocking — don't fail the request if sheet write fails)
+    appendPartnerApplicationToSheet({
+      businessName,
+      ownerName,
+      email,
+      phone,
+      primaryCity,
+      additionalCities: additionalCities || null,
+      numberOfVehicles: numberOfVehicles || 0,
+      vehicleTypes: vehicleTypes || "",
+      currentPlatforms: currentPlatforms || "",
+      turoProfileUrl: turoProfileUrl || null,
+      offersAirportDelivery: offersAirportDelivery || false,
+      offersHomeDelivery: offersHomeDelivery || false,
+      hasCommercialInsurance: hasCommercialInsurance || false,
+      supportsSameDayBookings: supportsSameDayBookings || false,
+      operates24x7: operates24x7 || false,
+      wouldUseDCSupport: wouldUseDCSupport || false,
+    }).catch((err) => {
+      console.error("Google Sheets append failed (non-fatal):", err);
     });
 
     return NextResponse.json({ success: true, id: application.id }, { status: 201 });
